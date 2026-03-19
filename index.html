@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="description" content="BladeForge — Universal in-browser file converter. Images, documents, data, spreadsheets. No uploads, no server."/>
-<title>BladeForge — Universal File Converter</title>
+<meta name="description" content="BladeForge — Universal in-browser file converter & media downloader."/>
+<title>BladeForge</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='6' y='6' width='20' height='20' transform='rotate(45 16 16)' fill='none' stroke='%23C0102A' stroke-width='1.5'/%3E%3Crect x='10' y='10' width='12' height='12' transform='rotate(45 16 16)' fill='none' stroke='%23C0102A' stroke-width='1'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23C0102A'/%3E%3C/svg%3E"/>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -12,674 +12,206 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-/* ─────────────────────────────────────────────────────────────
-   RESET & BASE
-───────────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{font-family:'EB Garamond',Georgia,serif;font-size:1rem;line-height:1.6;
-     -webkit-tap-highlight-color:rgba(191,10,46,.12);overflow-x:hidden}
+body{font-family:'EB Garamond',Georgia,serif;font-size:1rem;line-height:1.6;-webkit-tap-highlight-color:rgba(191,10,46,.12);overflow-x:hidden}
 img,svg{display:block;max-width:100%}
 button{cursor:pointer;font-family:inherit;border:none;background:none}
-select{font-family:inherit}
-textarea{font-family:inherit;resize:vertical}
+select,textarea,input[type=text]{font-family:inherit}
+textarea{resize:vertical}
 input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-
-/* ─────────────────────────────────────────────────────────────
-   DESIGN TOKENS
-───────────────────────────────────────────────────────────── */
 :root{
-  /* Ink palette */
-  --c-bg:       #060708;
-  --c-ink:      #0C0D10;
-  --c-panel:    #111318;
-  --c-surface:  #181A20;
-  --c-raised:   #1E2028;
-
-  /* Borders */
-  --c-edge:     rgba(255,255,255,.055);
-  --c-edge-2:   rgba(255,255,255,.10);
-  --c-edge-3:   rgba(255,255,255,.18);
-
-  /* Crimson */
-  --c-red:      #C0102A;
-  --c-red-deep: #8E0820;
-  --c-red-glow: rgba(192,16,42,.16);
-  --c-red-tint: rgba(192,16,42,.07);
-
-  /* Ash white */
-  --c-ash:      #EDE9E2;
-  --c-ash-70:   rgba(237,233,226,.70);
-  --c-ash-40:   rgba(237,233,226,.40);
-  --c-ash-18:   rgba(237,233,226,.18);
-  --c-ash-08:   rgba(237,233,226,.08);
-
-  /* Success */
-  --c-ok:       #2A7A4A;
-  --c-ok-tint:  rgba(42,122,74,.12);
-
-  /* Typography */
-  --f-display:  'Cinzel',Georgia,serif;
-  --f-body:     'EB Garamond',Georgia,serif;
-
-  /* Motion */
-  --ease:       cubic-bezier(.19,1,.22,1);
-  --ease-in:    cubic-bezier(.55,.0,1,.45);
-  --t-fast:     .18s;
-  --t-med:      .28s;
-  --t-slow:     .42s;
-
-  /* Spacing scale */
-  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px;
-  --sp-5:20px; --sp-6:24px; --sp-8:32px; --sp-10:40px;
-  --sp-12:48px; --sp-16:64px;
-
-  /* Layout */
-  --max-w: 880px;
-  --nav-h: 64px;
+  --c-bg:#060708;--c-panel:#111318;--c-surface:#181A20;--c-raised:#1E2028;
+  --c-edge:rgba(255,255,255,.055);--c-edge-2:rgba(255,255,255,.10);--c-edge-3:rgba(255,255,255,.18);
+  --c-red:#C0102A;--c-red-deep:#8E0820;--c-red-tint:rgba(192,16,42,.07);
+  --c-ash:#EDE9E2;--c-ash-70:rgba(237,233,226,.70);--c-ash-40:rgba(237,233,226,.40);--c-ash-08:rgba(237,233,226,.08);
+  --c-ok:#2A7A4A;--c-warn-tint:rgba(180,130,20,.08);
+  --f-display:'Cinzel',Georgia,serif;--f-body:'EB Garamond',Georgia,serif;
+  --ease:cubic-bezier(.19,1,.22,1);--t-fast:.18s;--t-med:.28s;--t-slow:.42s;
+  --sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-8:32px;--sp-10:40px;--sp-12:48px;--sp-16:64px;
+  --max-w:880px;--nav-h:64px;
 }
-
-/* ─────────────────────────────────────────────────────────────
-   FILM GRAIN + DOT GRID
-───────────────────────────────────────────────────────────── */
-body{
-  background-color:var(--c-bg);
-  color:var(--c-ash);
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='0' cy='0' r='.6' fill='%23fff' opacity='.022'/%3E%3C/svg%3E");
-}
-body::before{
-  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity:.035;mix-blend-mode:overlay;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   LAYOUT
-───────────────────────────────────────────────────────────── */
+body{background-color:var(--c-bg);color:var(--c-ash);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='0' cy='0' r='.6' fill='%23fff' opacity='.022'/%3E%3C/svg%3E")}
+body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.035;mix-blend-mode:overlay}
 .page{display:flex;flex-direction:column;min-height:100vh}
-.main{flex:1;max-width:var(--max-w);width:100%;margin:0 auto;
-      padding:var(--sp-16) var(--sp-6) var(--sp-16)}
-
-/* ─────────────────────────────────────────────────────────────
-   NAV BAR
-───────────────────────────────────────────────────────────── */
-.nav{
-  position:sticky;top:0;z-index:100;
-  height:var(--nav-h);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 var(--sp-6);
-  background:rgba(6,7,8,.92);
-  border-bottom:1px solid var(--c-edge);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-}
-.nav::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,var(--c-red),rgba(192,16,42,.3) 60%,transparent);
-  opacity:.55;
-}
-.nav-brand{display:flex;align-items:center;gap:var(--sp-3)}
-.nav-mark{
-  width:30px;height:30px;position:relative;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.nav-mark svg{position:absolute}
-.nav-wordmark{
-  font-family:var(--f-display);font-size:.82rem;font-weight:400;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--c-ash);
-}
+.main{flex:1;max-width:var(--max-w);width:100%;margin:0 auto;padding:var(--sp-16) var(--sp-6)}
+.nav{position:sticky;top:0;z-index:100;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 var(--sp-6);background:rgba(6,7,8,.92);border-bottom:1px solid var(--c-edge);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.nav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--c-red),rgba(192,16,42,.3) 60%,transparent);opacity:.55}
+.nav-wordmark{font-family:var(--f-display);font-size:.82rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c-ash)}
 .nav-wordmark span{color:var(--c-red)}
-.nav-badge{
-  font-family:var(--f-display);font-size:.52rem;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--c-ash-40);
-  border:1px solid var(--c-edge-2);padding:3px 10px;
-}
+.nav-badge{font-family:var(--f-display);font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--c-ash-40);border:1px solid var(--c-edge-2);padding:3px 10px}
 @media(max-width:480px){.nav-badge{display:none}}
-
-/* ─────────────────────────────────────────────────────────────
-   HEADER
-───────────────────────────────────────────────────────────── */
 .header{text-align:center;margin-bottom:var(--sp-12);padding-top:var(--sp-4)}
-.header-kamon{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:56px;height:56px;position:relative;margin:0 auto var(--sp-5);
-}
+.header-kamon{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;position:relative;margin:0 auto var(--sp-5)}
 .header-kamon svg{position:absolute}
-.header-kamon-pulse{
-  position:absolute;width:8px;height:8px;border-radius:50%;
-  background:var(--c-red);
-  box-shadow:0 0 0 0 rgba(192,16,42,.5);
-  animation:kamon-pulse 2.8s ease-in-out infinite;
-}
-@keyframes kamon-pulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(192,16,42,.5);transform:scale(1)}
-  50%{box-shadow:0 0 0 8px rgba(192,16,42,0);transform:scale(1.15)}
-}
-.header-title{
-  font-family:var(--f-display);font-size:clamp(2rem,6vw,3.2rem);
-  font-weight:400;letter-spacing:.12em;color:var(--c-ash);
-  line-height:1.1;margin-bottom:var(--sp-4);
-}
+.header-kamon-pulse{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--c-red);box-shadow:0 0 0 0 rgba(192,16,42,.5);animation:kamon-pulse 2.8s ease-in-out infinite}
+@keyframes kamon-pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,16,42,.5);transform:scale(1)}50%{box-shadow:0 0 0 8px rgba(192,16,42,0);transform:scale(1.15)}}
+.header-title{font-family:var(--f-display);font-size:clamp(2rem,6vw,3.2rem);font-weight:400;letter-spacing:.12em;color:var(--c-ash);line-height:1.1;margin-bottom:var(--sp-4)}
 .header-title em{color:var(--c-red);font-style:normal}
-.header-rule{
-  display:flex;align-items:center;gap:var(--sp-3);
-  max-width:400px;margin:0 auto var(--sp-3);
-}
+.header-rule{display:flex;align-items:center;gap:var(--sp-3);max-width:400px;margin:0 auto var(--sp-3)}
 .header-rule-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--c-red));opacity:.4}
 .header-rule-line:last-child{background:linear-gradient(to left,transparent,var(--c-red))}
-.header-rule-icon{width:6px;height:6px;border:1px solid var(--c-red);
-                  transform:rotate(45deg);flex-shrink:0;opacity:.6}
-.header-sub{
-  font-family:var(--f-body);font-style:italic;font-size:1rem;
-  color:var(--c-ash-40);letter-spacing:.04em;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   CATEGORY TABS
-───────────────────────────────────────────────────────────── */
+.header-rule-icon{width:6px;height:6px;border:1px solid var(--c-red);transform:rotate(45deg);flex-shrink:0;opacity:.6}
+.header-sub{font-family:var(--f-body);font-style:italic;font-size:1rem;color:var(--c-ash-40);letter-spacing:.04em}
 .tabs-wrap{margin-bottom:var(--sp-5)}
-.tabs{
-  display:grid;grid-template-columns:repeat(5,1fr);
-  background:var(--c-panel);
-  border:1px solid var(--c-edge);
-  padding:4px;gap:3px;
-}
-.tab{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 8px;border:1px solid transparent;
-  font-family:var(--f-display);font-size:.6rem;font-weight:400;
-  letter-spacing:.16em;text-transform:uppercase;
-  color:var(--c-ash-40);
-  transition:color var(--t-fast) var(--ease),
-             background var(--t-fast) var(--ease),
-             border-color var(--t-fast) var(--ease);
-  position:relative;overflow:hidden;
-  min-height:48px;
-}
-.tab::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:1.5px;
-  background:var(--c-red);transform:scaleX(0);transform-origin:left;
-  transition:transform .3s var(--ease);
-}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);background:var(--c-panel);border:1px solid var(--c-edge);padding:4px;gap:3px}
+.tab{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border:1px solid transparent;font-family:var(--f-display);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--c-ash-40);min-height:48px;position:relative;overflow:hidden;transition:color var(--t-fast) var(--ease),background var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
+.tab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1.5px;background:var(--c-red);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
 .tab:hover{color:var(--c-ash-70);background:var(--c-ash-08)}
-.tab.active{
-  color:var(--c-ash);background:var(--c-red-tint);
-  border-color:rgba(192,16,42,.2);
-}
+.tab.active{color:var(--c-ash);background:var(--c-red-tint);border-color:rgba(192,16,42,.2)}
 .tab.active::after{transform:scaleX(1)}
 .tab-icon{width:16px;height:16px;flex-shrink:0;opacity:.8}
 .tab.active .tab-icon{opacity:1}
-@media(max-width:700px){
-  .tabs{grid-template-columns:repeat(3,1fr)}
-  .tab{font-size:.54rem;padding:12px 5px;min-height:52px}
-}
-@media(max-width:460px){
-  .tabs{grid-template-columns:repeat(3,1fr)}
-  .tab{font-size:.52rem;padding:11px 4px;min-height:50px}
-}
-@media(max-width:360px){
-  .tab span.tab-label{display:none}
-  .tab-icon{width:20px;height:20px;opacity:1}
-}
-
-/* ─────────────────────────────────────────────────────────────
-   CONVERSION ROW
-───────────────────────────────────────────────────────────── */
-.conv-row{
-  display:flex;align-items:center;gap:var(--sp-3);
-  margin-bottom:var(--sp-3);flex-wrap:wrap;
-}
-.conv-label{
-  font-family:var(--f-display);font-size:.58rem;letter-spacing:.24em;
-  text-transform:uppercase;color:var(--c-ash-40);white-space:nowrap;
-  flex-shrink:0;
-}
+@media(max-width:700px){.tabs{grid-template-columns:repeat(3,1fr)}.tab{font-size:.54rem;padding:12px 5px;min-height:52px}}
+@media(max-width:360px){.tab span.tab-label{display:none}.tab-icon{width:20px;height:20px;opacity:1}}
+.conv-row{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);flex-wrap:wrap}
+.conv-label{font-family:var(--f-display);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--c-ash-40);white-space:nowrap;flex-shrink:0}
 .conv-select-wrap{flex:1;min-width:200px;position:relative}
-.conv-select-wrap::after{
-  content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);
-  width:10px;height:6px;pointer-events:none;
-  background:var(--c-red);
-  clip-path:polygon(0 0,100% 0,50% 100%);
-  opacity:.8;
-}
-.conv-select{
-  width:100%;appearance:none;
-  background:var(--c-panel);border:1px solid var(--c-edge-2);
-  color:var(--c-ash);
-  font-family:var(--f-display);font-size:.68rem;letter-spacing:.06em;
-  padding:11px 36px 11px 14px;
-  outline:none;transition:border-color var(--t-fast) var(--ease);
-}
+.conv-select-wrap::after{content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);width:10px;height:6px;pointer-events:none;background:var(--c-red);clip-path:polygon(0 0,100% 0,50% 100%);opacity:.8}
+.conv-select{width:100%;appearance:none;background:var(--c-panel);border:1px solid var(--c-edge-2);color:var(--c-ash);font-family:var(--f-display);font-size:.68rem;letter-spacing:.06em;padding:11px 36px 11px 14px;outline:none;transition:border-color var(--t-fast) var(--ease)}
 .conv-select:focus{border-color:var(--c-red)}
 .conv-select option{background:var(--c-panel);color:var(--c-ash)}
-
-/* Accept strip */
-.accept-strip{
-  display:flex;align-items:center;gap:var(--sp-2);
-  margin-bottom:var(--sp-4);flex-wrap:wrap;
-}
-.accept-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--c-red-tint);border:1px solid rgba(192,16,42,.22);
-  padding:4px 10px;
-}
+.accept-strip{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-4);flex-wrap:wrap}
+.accept-badge{display:inline-flex;align-items:center;gap:6px;background:var(--c-red-tint);border:1px solid rgba(192,16,42,.22);padding:4px 10px}
 .accept-badge svg{width:10px;height:10px;color:var(--c-red);flex-shrink:0}
-.accept-badge span{
-  font-family:var(--f-display);font-size:.56rem;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--c-red);
-}
-.accept-hint{
-  font-family:var(--f-body);font-style:italic;font-size:.82rem;
-  color:var(--c-ash-40);
-}
-
-/* ─────────────────────────────────────────────────────────────
-   DROP ZONE
-───────────────────────────────────────────────────────────── */
-.drop-zone{
-  position:relative;border:1px dashed var(--c-edge-2);
-  background:var(--c-panel);
-  padding:var(--sp-12) var(--sp-6);text-align:center;
-  cursor:pointer;overflow:visible;
-  transition:border-color var(--t-med) var(--ease),
-             background var(--t-med) var(--ease),
-             transform .15s var(--ease);
-  margin-bottom:var(--sp-4);
-}
-
-/* ── Symmetric 4-corner bracket system ──
-   All four corners: same size (20×20), same offset (10px),
-   same border weight (1px), same color, same transitions.     */
-.drop-corner{
-  position:absolute;
-  width:20px;height:20px;
-  border-style:solid;border-color:rgba(192,16,42,.28);
-  pointer-events:none;
-  transition:
-    width  var(--t-slow) var(--ease),
-    height var(--t-slow) var(--ease),
-    border-color var(--t-med) var(--ease);
-}
-/* top-left */
+.accept-badge span{font-family:var(--f-display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-red)}
+.accept-hint{font-family:var(--f-body);font-style:italic;font-size:.82rem;color:var(--c-ash-40)}
+/* SIZE WARNING */
+.size-warn{display:none;align-items:center;gap:8px;background:var(--c-warn-tint);border:1px solid rgba(180,130,20,.25);padding:8px 14px;margin-bottom:var(--sp-3)}
+.size-warn.visible{display:flex}
+.size-warn-text{font-family:var(--f-display);font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(220,170,40,.9)}
+/* RESIZE ROW */
+.resize-row{display:none;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-4);background:var(--c-panel);border:1px solid var(--c-edge-2);padding:var(--sp-3) var(--sp-4)}
+.resize-row.visible{display:flex}
+.resize-label{font-family:var(--f-display);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--c-ash-40);flex-shrink:0}
+.resize-input{flex:1;background:var(--c-surface);border:1px solid var(--c-edge-2);color:var(--c-ash);font-family:var(--f-display);font-size:.72rem;padding:8px 12px;outline:none;transition:border-color var(--t-fast) var(--ease)}
+.resize-input:focus{border-color:var(--c-red)}
+.resize-unit{font-family:var(--f-display);font-size:.6rem;letter-spacing:.12em;color:var(--c-ash-40);flex-shrink:0}
+/* DROP ZONE */
+.drop-zone{position:relative;border:1px dashed var(--c-edge-2);background:var(--c-panel);padding:var(--sp-12) var(--sp-6);text-align:center;cursor:pointer;overflow:visible;margin-bottom:var(--sp-4);transition:border-color var(--t-med) var(--ease),background var(--t-med) var(--ease),transform .15s var(--ease)}
+.drop-corner{position:absolute;width:20px;height:20px;border-style:solid;border-color:rgba(192,16,42,.28);pointer-events:none;transition:width var(--t-slow) var(--ease),height var(--t-slow) var(--ease),border-color var(--t-med) var(--ease)}
 .drop-corner-tl{top:10px;left:10px;border-width:1px 0 0 1px}
-/* top-right */
 .drop-corner-tr{top:10px;right:10px;border-width:1px 1px 0 0}
-/* bottom-left */
 .drop-corner-bl{bottom:10px;left:10px;border-width:0 0 1px 1px}
-/* bottom-right */
 .drop-corner-br{bottom:10px;right:10px;border-width:0 1px 1px 0}
-
-/* Hover: all four corners expand identically */
-.drop-zone:hover .drop-corner,
-.drop-zone.drag-over .drop-corner{
-  width:28px;height:28px;border-color:rgba(192,16,42,.65);
-}
+.drop-zone:hover .drop-corner,.drop-zone.drag-over .drop-corner{width:28px;height:28px;border-color:rgba(192,16,42,.65)}
 .drop-zone.drag-over .drop-corner{border-color:rgba(192,16,42,.9)}
-
 .drop-zone:hover{border-color:rgba(192,16,42,.4);background:rgba(11,12,15,.98)}
-.drop-zone.drag-over{
-  border-color:var(--c-red);background:rgba(11,8,9,.98);
-  transform:scale(1.005);
-}
+.drop-zone.drag-over{border-color:var(--c-red);background:rgba(11,8,9,.98);transform:scale(1.005)}
 .drop-zone.drag-over .drop-upload-icon{color:var(--c-red);transform:translateY(-4px)}
-.drop-upload-icon{
-  width:40px;height:40px;margin:0 auto var(--sp-4);
-  color:var(--c-ash-40);
-  transition:color var(--t-med) var(--ease),transform var(--t-med) var(--ease);
-}
+.drop-upload-icon{width:40px;height:40px;margin:0 auto var(--sp-4);color:var(--c-ash-40);transition:color var(--t-med) var(--ease),transform var(--t-med) var(--ease)}
 .drop-zone:hover .drop-upload-icon{color:var(--c-ash-70)}
-.drop-title{
-  font-family:var(--f-display);font-size:.82rem;font-weight:400;
-  letter-spacing:.1em;color:var(--c-ash-70);margin-bottom:6px;
-}
-.drop-sub{
-  font-family:var(--f-body);font-style:italic;font-size:.88rem;
-  color:var(--c-ash-40);
-}
-.drop-cta{
-  display:inline-block;margin-top:var(--sp-4);
-  font-family:var(--f-display);font-size:.6rem;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--c-red);
-  border:1px solid rgba(192,16,42,.3);padding:6px 18px;
-  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease);
-}
+.drop-title{font-family:var(--f-display);font-size:.82rem;letter-spacing:.1em;color:var(--c-ash-70);margin-bottom:6px}
+.drop-sub{font-family:var(--f-body);font-style:italic;font-size:.88rem;color:var(--c-ash-40)}
+.drop-cta{display:inline-block;margin-top:var(--sp-4);font-family:var(--f-display);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--c-red);border:1px solid rgba(192,16,42,.3);padding:6px 18px;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
 .drop-zone:hover .drop-cta{background:var(--c-red);color:var(--c-ash)}
-
-/* Paste textarea */
-.paste-zone{
-  width:100%;min-height:160px;
-  background:var(--c-panel);border:1px solid var(--c-edge-2);
-  color:var(--c-ash);font-family:var(--f-body);font-size:.95rem;line-height:1.75;
-  padding:16px;outline:none;
-  transition:border-color var(--t-fast) var(--ease);
-  margin-bottom:var(--sp-4);
-}
+/* PASTE ZONE */
+.paste-zone-wrap{position:relative;margin-bottom:var(--sp-4)}
+.paste-zone{width:100%;min-height:160px;background:var(--c-panel);border:1px solid var(--c-edge-2);color:var(--c-ash);font-size:.95rem;line-height:1.75;padding:16px 16px 48px;outline:none;transition:border-color var(--t-fast) var(--ease);display:block}
 .paste-zone:focus{border-color:var(--c-red)}
 .paste-zone::placeholder{color:var(--c-ash-40);font-style:italic}
-
-/* ─────────────────────────────────────────────────────────────
-   FILE LIST
-───────────────────────────────────────────────────────────── */
-.file-list-header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:var(--sp-2);
-}
-.file-list-label{
-  font-family:var(--f-display);font-size:.56rem;letter-spacing:.22em;
-  text-transform:uppercase;color:var(--c-ash-40);
-}
-.file-count{
-  font-family:var(--f-display);font-size:.56rem;letter-spacing:.1em;
-  color:var(--c-red);background:var(--c-red-tint);
-  border:1px solid rgba(192,16,42,.2);
-  padding:2px 8px;min-width:22px;text-align:center;
-  transition:all var(--t-fast) var(--ease);
-}
-.btn-clear-all{
-  font-family:var(--f-display);font-size:.54rem;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--c-ash-40);
-  border:1px solid var(--c-edge);padding:3px 10px;
-  transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease);
-}
+.paste-actions{position:absolute;bottom:10px;right:10px;display:flex;gap:6px}
+.paste-btn{font-family:var(--f-display);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ash-40);border:1px solid var(--c-edge);padding:5px 12px;background:var(--c-surface);transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
+.paste-btn:hover{color:var(--c-ash);border-color:var(--c-edge-3)}
+/* YT OPTS */
+.yt-opts-inner{background:var(--c-panel);border:1px solid var(--c-edge-2);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3)}
+.yt-opt-group{display:flex;align-items:center;gap:var(--sp-4);flex-wrap:wrap}
+.yt-opt-label{font-family:var(--f-display);font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c-ash-40);white-space:nowrap;flex-shrink:0}
+.yt-opt-pills{display:flex;gap:4px;flex-wrap:wrap}
+.yt-pill{font-family:var(--f-display);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;padding:6px 14px;border:1px solid var(--c-edge-2);background:transparent;color:var(--c-ash-40);min-height:32px;transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+.yt-pill:hover{color:var(--c-ash-70);border-color:var(--c-edge-3)}
+.yt-pill.active{background:var(--c-red-tint);border-color:rgba(192,16,42,.4);color:var(--c-ash)}
+.yt-platform-info{font-family:var(--f-body);font-style:italic;font-size:.82rem;color:var(--c-ash-40)}
+/* FILE LIST */
+.file-list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-2)}
+.file-list-label{font-family:var(--f-display);font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c-ash-40)}
+.file-count{font-family:var(--f-display);font-size:.56rem;letter-spacing:.1em;color:var(--c-red);background:var(--c-red-tint);border:1px solid rgba(192,16,42,.2);padding:2px 8px;min-width:22px;text-align:center}
+.btn-clear-all{font-family:var(--f-display);font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ash-40);border:1px solid var(--c-edge);padding:3px 10px;transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
 .btn-clear-all:hover{color:var(--c-red);border-color:rgba(192,16,42,.4)}
-
 .file-list{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:var(--sp-5)}
-.file-item{
-  display:flex;align-items:center;gap:var(--sp-3);
-  background:var(--c-surface);border:1px solid var(--c-edge);
-  padding:10px 14px;
-  animation:slide-in .24s var(--ease) both;
-  position:relative;overflow:hidden;
-}
-.file-item::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;
-  width:2px;background:transparent;
-  transition:background var(--t-fast) var(--ease);
-}
+.file-item{display:flex;align-items:center;gap:var(--sp-3);background:var(--c-surface);border:1px solid var(--c-edge);padding:10px 14px;animation:slide-in .24s var(--ease) both;position:relative;overflow:hidden}
+.file-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background var(--t-fast) var(--ease)}
 .file-item:hover::before{background:var(--c-red)}
 @keyframes slide-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
 .file-type-icon{width:20px;height:20px;flex-shrink:0}
-.file-ext-badge{
-  font-family:var(--f-display);font-size:.54rem;letter-spacing:.06em;
-  text-transform:uppercase;background:var(--c-red-tint);
-  border:1px solid rgba(192,16,42,.22);color:var(--c-red);
-  padding:2px 6px;white-space:nowrap;flex-shrink:0;
-}
+.file-ext-badge{font-family:var(--f-display);font-size:.54rem;letter-spacing:.06em;text-transform:uppercase;background:var(--c-red-tint);border:1px solid rgba(192,16,42,.22);color:var(--c-red);padding:2px 6px;white-space:nowrap;flex-shrink:0}
 .file-info{flex:1;min-width:0}
-.file-name{
-  font-family:var(--f-body);font-size:.9rem;color:var(--c-ash-70);
-  font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  display:block;
-}
-.file-meta{
-  font-family:var(--f-display);font-size:.54rem;letter-spacing:.08em;
-  color:var(--c-ash-40);margin-top:2px;
-}
-.file-remove{
-  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
-  color:var(--c-ash-40);border:1px solid transparent;flex-shrink:0;
-  transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),
-             background var(--t-fast) var(--ease);
-  min-width:28px;min-height:28px;
-}
+.file-name{font-family:var(--f-body);font-size:.9rem;color:var(--c-ash-70);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.file-meta{font-family:var(--f-display);font-size:.54rem;letter-spacing:.08em;color:var(--c-ash-40);margin-top:2px}
+.file-remove{width:28px;height:28px;min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center;color:var(--c-ash-40);border:1px solid transparent;flex-shrink:0;transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
 .file-remove:hover{color:var(--c-red);border-color:rgba(192,16,42,.35);background:var(--c-red-tint)}
 .file-remove svg{width:10px;height:10px;pointer-events:none}
-
-/* ─────────────────────────────────────────────────────────────
-   CONVERT BUTTON
-───────────────────────────────────────────────────────────── */
-.convert-btn{
-  width:100%;padding:16px var(--sp-6);
-  background:var(--c-red);color:var(--c-ash);
-  border:1px solid var(--c-red);
-  font-family:var(--f-display);font-size:.68rem;font-weight:400;
-  letter-spacing:.28em;text-transform:uppercase;
-  position:relative;overflow:hidden;
-  transition:box-shadow var(--t-med) var(--ease),
-             background var(--t-fast) var(--ease),
-             transform .1s;
-  min-height:52px;
-  display:flex;align-items:center;justify-content:center;gap:12px;
-}
-.convert-btn::before{
-  content:'';position:absolute;inset:0;
-  background:var(--c-red-deep);
-  transform:translateX(-101%);
-  transition:transform .38s var(--ease);
-}
-.convert-btn:hover:not(:disabled){
-  box-shadow:0 8px 36px rgba(192,16,42,.38);
-}
+/* CONVERT BTN */
+.convert-btn{width:100%;padding:16px var(--sp-6);background:var(--c-red);color:var(--c-ash);border:1px solid var(--c-red);font-family:var(--f-display);font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;position:relative;overflow:hidden;min-height:52px;display:flex;align-items:center;justify-content:center;gap:12px;transition:box-shadow var(--t-med) var(--ease),background var(--t-fast) var(--ease),transform .1s}
+.convert-btn::before{content:'';position:absolute;inset:0;background:var(--c-red-deep);transform:translateX(-101%);transition:transform .38s var(--ease)}
+.convert-btn:hover:not(:disabled){box-shadow:0 8px 36px rgba(192,16,42,.38)}
 .convert-btn:hover:not(:disabled)::before{transform:translateX(0)}
 .convert-btn:active:not(:disabled){transform:scale(.99)}
 .convert-btn:disabled{opacity:.28;cursor:not-allowed}
-.convert-btn > *{position:relative;z-index:1}
+.convert-btn>*{position:relative;z-index:1}
 .convert-btn-icon{width:16px;height:16px;flex-shrink:0;transition:transform var(--t-med) var(--ease)}
 .convert-btn:hover:not(:disabled) .convert-btn-icon{transform:rotate(180deg) scale(1.1)}
 .convert-btn.loading .convert-btn-icon{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* ─────────────────────────────────────────────────────────────
-   PROGRESS
-───────────────────────────────────────────────────────────── */
+/* PROGRESS */
 .progress-section{margin-top:var(--sp-3);display:none}
-.progress-track{
-  height:2px;background:var(--c-edge-2);overflow:hidden;position:relative;
-}
-.progress-bar{
-  height:100%;width:0%;
-  background:linear-gradient(90deg,var(--c-red-deep),var(--c-red),#e83050);
-  transition:width .3s var(--ease);
-  position:relative;
-}
-.progress-bar::after{
-  content:'';position:absolute;right:0;top:0;bottom:0;
-  width:40px;background:linear-gradient(to right,transparent,rgba(255,80,80,.4));
-  filter:blur(4px);
-}
-.progress-label{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-top:var(--sp-2);
-}
-.progress-status{
-  font-family:var(--f-display);font-size:.56rem;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--c-ash-40);
-}
-.progress-pct{
-  font-family:var(--f-display);font-size:.56rem;letter-spacing:.08em;
-  color:var(--c-red);
-}
-
-/* ─────────────────────────────────────────────────────────────
-   OUTPUT PANEL
-───────────────────────────────────────────────────────────── */
-.output-panel{
-  margin-top:var(--sp-6);display:none;
-  animation:fade-up .4s var(--ease) both;
-}
+.progress-track{height:2px;background:var(--c-edge-2);overflow:hidden}
+.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--c-red-deep),var(--c-red),#e83050);transition:width .4s var(--ease);position:relative}
+.progress-bar::after{content:'';position:absolute;right:0;top:0;bottom:0;width:40px;background:linear-gradient(to right,transparent,rgba(255,80,80,.4));filter:blur(4px)}
+.progress-label{display:flex;align-items:center;justify-content:space-between;margin-top:var(--sp-2)}
+.progress-status{font-family:var(--f-display);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--c-ash-40)}
+.progress-pct{font-family:var(--f-display);font-size:.56rem;letter-spacing:.08em;color:var(--c-red)}
+/* OUTPUT */
+.output-panel{margin-top:var(--sp-6);display:none;animation:fade-up .4s var(--ease) both}
 @keyframes fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.output-header{
-  display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);
-}
-.output-header-icon{
-  width:18px;height:18px;color:var(--c-ok);flex-shrink:0;
-}
-.output-header-text{
-  font-family:var(--f-display);font-size:.58rem;letter-spacing:.22em;
-  text-transform:uppercase;color:var(--c-ok);flex:1;
-}
+.output-header{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3)}
+.output-header-icon{width:18px;height:18px;color:var(--c-ok);flex-shrink:0}
+.output-header-text{font-family:var(--f-display);font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c-ok)}
 .output-header-line{flex:1;height:1px;background:rgba(42,122,74,.2)}
-
 .output-list{list-style:none;display:flex;flex-direction:column;gap:5px}
-.output-item{
-  display:flex;align-items:center;gap:var(--sp-3);
-  background:#080E0B;border:1px solid rgba(42,122,74,.18);
-  padding:12px 14px;
-  animation:slide-in .2s var(--ease) both;
-  position:relative;overflow:hidden;
-}
-.output-item::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;
-  width:2px;background:linear-gradient(to bottom,var(--c-ok),rgba(42,122,74,.4));
-}
+.output-item{display:flex;align-items:center;gap:var(--sp-3);background:#080E0B;border:1px solid rgba(42,122,74,.18);padding:12px 14px;animation:slide-in .2s var(--ease) both;position:relative;overflow:hidden}
+.output-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--c-ok),rgba(42,122,74,.4))}
 .output-file-icon{width:20px;height:20px;flex-shrink:0;color:var(--c-ok);opacity:.7}
 .output-info{flex:1;min-width:0}
-.output-name{
-  font-family:var(--f-body);font-style:italic;font-size:.9rem;
-  color:var(--c-ash-70);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  display:block;
-}
-.output-size{
-  font-family:var(--f-display);font-size:.54rem;letter-spacing:.08em;
-  color:var(--c-ash-40);margin-top:2px;
-}
-.btn-download{
-  display:flex;align-items:center;gap:8px;
-  background:transparent;color:var(--c-ok);
-  border:1px solid rgba(42,122,74,.35);
-  padding:7px 16px;flex-shrink:0;
-  font-family:var(--f-display);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;
-  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),
-             border-color var(--t-fast) var(--ease);
-  min-height:36px;
-}
+.output-name{font-family:var(--f-body);font-style:italic;font-size:.9rem;color:var(--c-ash-70);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.output-size{font-family:var(--f-display);font-size:.54rem;letter-spacing:.08em;color:var(--c-ash-40);margin-top:2px}
+.btn-download{display:flex;align-items:center;gap:8px;background:transparent;color:var(--c-ok);border:1px solid rgba(42,122,74,.35);padding:7px 16px;flex-shrink:0;font-family:var(--f-display);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;min-height:36px;text-decoration:none;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
 .btn-download:hover{background:var(--c-ok);color:var(--c-ash);border-color:var(--c-ok)}
 .btn-download svg{width:12px;height:12px;flex-shrink:0}
-
-.output-actions{
-  display:flex;gap:var(--sp-3);margin-top:var(--sp-4);
-  justify-content:flex-end;flex-wrap:wrap;
-}
-.btn-dl-all{
-  display:flex;align-items:center;gap:8px;
-  background:var(--c-ok);color:var(--c-ash);
-  border:1px solid var(--c-ok);
-  padding:10px 22px;
-  font-family:var(--f-display);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
-  transition:opacity var(--t-fast) var(--ease);
-  min-height:40px;
-}
+.output-actions{display:flex;gap:var(--sp-3);margin-top:var(--sp-4);justify-content:flex-end;flex-wrap:wrap}
+.btn-dl-all{display:flex;align-items:center;gap:8px;background:var(--c-ok);color:var(--c-ash);border:1px solid var(--c-ok);padding:10px 22px;font-family:var(--f-display);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;min-height:40px;transition:opacity var(--t-fast) var(--ease)}
 .btn-dl-all:hover{opacity:.85}
-.btn-dl-all svg{width:14px;height:14px;flex-shrink:0}
-.btn-new-conv{
-  display:flex;align-items:center;gap:8px;
-  background:transparent;color:var(--c-ash-70);
-  border:1px solid var(--c-edge-2);
-  padding:10px 22px;
-  font-family:var(--f-display);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
-  transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease);
-  min-height:40px;
-}
+.btn-dl-all svg,.btn-new-conv svg{width:14px;height:14px;flex-shrink:0}
+.btn-new-conv{display:flex;align-items:center;gap:8px;background:transparent;color:var(--c-ash-70);border:1px solid var(--c-edge-2);padding:10px 22px;font-family:var(--f-display);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;min-height:40px;transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
 .btn-new-conv:hover{color:var(--c-ash);border-color:var(--c-edge-3)}
-.btn-new-conv svg{width:14px;height:14px;flex-shrink:0}
-
-/* ─────────────────────────────────────────────────────────────
-   TOAST NOTIFICATION
-───────────────────────────────────────────────────────────── */
-#toast{
-  position:fixed;bottom:28px;left:50%;
-  transform:translateX(-50%) translateY(80px);
-  z-index:10000;pointer-events:none;
-  display:flex;align-items:center;gap:10px;
-  background:var(--c-raised);border:1px solid var(--c-edge-2);
-  padding:10px 18px;
-  font-family:var(--f-display);font-size:.62rem;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--c-ash-70);
-  transition:transform .32s var(--ease),opacity .2s;
-  max-width:min(90vw,360px);
-  box-shadow:0 16px 48px rgba(0,0,0,.6);
-}
+/* DOWNLOAD PANEL */
+.dl-panel{background:var(--c-panel);border:1px solid var(--c-edge-2);padding:var(--sp-5);display:none;margin-top:var(--sp-5)}
+.dl-panel.visible{display:block;animation:fade-up .3s var(--ease) both}
+.dl-panel-title{font-family:var(--f-display);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--c-ash-70);margin-bottom:var(--sp-2)}
+.dl-panel-sub{font-family:var(--f-body);font-style:italic;font-size:.88rem;color:var(--c-ash-40);margin-bottom:var(--sp-4);line-height:1.55}
+.dl-copy-row{display:flex;gap:8px;margin-bottom:var(--sp-4)}
+.dl-copy-input{flex:1;background:var(--c-surface);border:1px solid var(--c-edge-2);color:var(--c-ash-70);font-size:.82rem;padding:8px 12px;outline:none;font-family:'Courier New',monospace;min-width:0}
+.dl-copy-btn{font-family:var(--f-display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ash-40);border:1px solid var(--c-edge-2);padding:8px 16px;background:var(--c-surface);transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease);white-space:nowrap;flex-shrink:0}
+.dl-copy-btn:hover{color:var(--c-ash);border-color:var(--c-edge-3)}
+.dl-copy-btn.copied{color:var(--c-ok);border-color:rgba(42,122,74,.4)}
+.dl-sites{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.dl-site-card{display:flex;flex-direction:column;gap:4px;background:var(--c-surface);border:1px solid var(--c-edge);padding:12px 14px;text-decoration:none;color:inherit;cursor:pointer;transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease);position:relative;overflow:hidden}
+.dl-site-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background var(--t-fast) var(--ease)}
+.dl-site-card:hover{border-color:rgba(192,16,42,.35);background:rgba(20,15,18,.98)}
+.dl-site-card:hover::before{background:var(--c-red)}
+.dl-site-name{font-family:var(--f-display);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ash-70);display:flex;align-items:center;gap:5px}
+.dl-site-supports{font-family:var(--f-body);font-style:italic;font-size:.8rem;color:var(--c-ash-40)}
+/* TOAST */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);z-index:10000;pointer-events:none;display:flex;align-items:center;gap:10px;background:var(--c-raised);border:1px solid var(--c-edge-2);padding:10px 18px;font-family:var(--f-display);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ash-70);transition:transform .32s var(--ease),opacity .2s;max-width:min(90vw,360px);box-shadow:0 16px 48px rgba(0,0,0,.6)}
 #toast.visible{transform:translateX(-50%) translateY(0)}
 #toast.toast-ok{border-color:rgba(42,122,74,.4);color:var(--c-ok)}
 #toast.toast-err{border-color:rgba(192,16,42,.4);color:var(--c-red)}
 #toast svg{width:14px;height:14px;flex-shrink:0}
-#toast span{flex:1}
-
-/* ─────────────────────────────────────────────────────────────
-   KEYBOARD SHORTCUT HINT
-───────────────────────────────────────────────────────────── */
-.shortcut-hint{
-  text-align:center;margin-top:var(--sp-3);
-  font-family:var(--f-display);font-size:.52rem;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--c-ash-40);
-  display:flex;align-items:center;justify-content:center;gap:6px;
-}
-.key{
-  display:inline-flex;align-items:center;justify-content:center;
-  border:1px solid var(--c-edge-2);padding:1px 6px;
-  font-size:.5rem;letter-spacing:.08em;color:var(--c-ash-40);
-  background:var(--c-surface);
-}
-
-/* ─────────────────────────────────────────────────────────────
-   FOOTER
-───────────────────────────────────────────────────────────── */
-.footer{
-  border-top:1px solid var(--c-edge);
-  padding:var(--sp-6);text-align:center;
-}
-.footer-text{
-  font-family:var(--f-body);font-style:italic;font-size:.82rem;
-  letter-spacing:.08em;color:var(--c-ash-40);
-  display:flex;align-items:center;justify-content:center;
-}
-.footer-sep{width:3px;height:3px;border:1px solid var(--c-ash-40);transform:rotate(45deg)}
-
-/* ─────────────────────────────────────────────────────────────
-   VALIDATION / ERROR STATES
-───────────────────────────────────────────────────────────── */
-.file-item.file-error{
-  border-color:rgba(192,16,42,.35);background:rgba(192,16,42,.04);
-}
-.file-item.file-error .file-ext-badge{background:rgba(192,16,42,.15)}
-.file-error-msg{
-  font-family:var(--f-display);font-size:.54rem;letter-spacing:.08em;
-  color:var(--c-red);margin-top:2px;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   YOUTUBE DOWNLOAD OPTIONS
-───────────────────────────────────────────────────────────── */
-.yt-opts-inner{
-  background:var(--c-panel);border:1px solid var(--c-edge-2);
-  padding:var(--sp-4) var(--sp-5);
-  margin-bottom:var(--sp-4);
-  display:flex;flex-direction:column;gap:var(--sp-3);
-}
-.yt-opt-group{display:flex;align-items:center;gap:var(--sp-4);flex-wrap:wrap}
-.yt-opt-label{
-  font-family:var(--f-display);font-size:.58rem;letter-spacing:.22em;
-  text-transform:uppercase;color:var(--c-ash-40);white-space:nowrap;flex-shrink:0;
-}
-.yt-opt-pills{display:flex;gap:4px;flex-wrap:wrap}
-.yt-pill{
-  font-family:var(--f-display);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;
-  padding:6px 14px;border:1px solid var(--c-edge-2);background:transparent;
-  color:var(--c-ash-40);
-  transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),
-             background var(--t-fast) var(--ease);
-  min-height:32px;
-}
-.yt-pill:hover{color:var(--c-ash-70);border-color:var(--c-edge-3)}
-.yt-pill.active{
-  background:var(--c-red-tint);border-color:rgba(192,16,42,.4);
-  color:var(--c-ash);
-}
-.yt-info-note{
-  display:flex;align-items:center;gap:7px;
-  font-family:var(--f-body);font-style:italic;font-size:.82rem;color:var(--c-ash-40);
-}
-.yt-info-note a{color:var(--c-red);text-decoration:none}
-.yt-info-note a:hover{text-decoration:underline}
-
-/* ─────────────────────────────────────────────────────────────
-   HIDDEN
-───────────────────────────────────────────────────────────── */
+.shortcut-hint{text-align:center;margin-top:var(--sp-3);font-family:var(--f-display);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ash-40);display:flex;align-items:center;justify-content:center;gap:6px}
+.key{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--c-edge-2);padding:1px 6px;font-size:.5rem;color:var(--c-ash-40);background:var(--c-surface)}
+.footer{border-top:1px solid var(--c-edge);padding:var(--sp-6);text-align:center}
+.footer-text{font-family:var(--f-body);font-style:italic;font-size:.82rem;color:var(--c-ash-40)}
 .hidden{display:none!important}
-
-/* ─────────────────────────────────────────────────────────────
-   MOBILE RESPONSIVE
-───────────────────────────────────────────────────────────── */
 @media(max-width:768px){
   :root{--nav-h:58px}
   .main{padding:var(--sp-10) var(--sp-4) var(--sp-16)}
@@ -692,175 +224,107 @@ body::before{
   .btn-download{width:100%}
   .output-actions{justify-content:stretch}
   .btn-dl-all,.btn-new-conv{flex:1;justify-content:center}
+  .dl-sites{grid-template-columns:1fr}
+  .dl-copy-row{flex-direction:column}
 }
 @media(max-width:480px){
   .main{padding:var(--sp-8) var(--sp-4) var(--sp-12)}
   .header-kamon{width:44px;height:44px}
-  .file-item{padding:10px 10px}
-  .file-ext-badge{display:none}
-  .shortcut-hint{display:none}
+  .file-item{padding:10px}
+  .file-ext-badge,.shortcut-hint{display:none}
   #toast{bottom:16px;padding:9px 14px;font-size:.58rem}
 }
 @media(hover:none) and (pointer:coarse){
-  .tab,.convert-btn,.btn-download,.btn-dl-all,
-  .btn-new-conv,.file-remove,.btn-clear-all{min-height:48px}
-  .drop-zone{padding:var(--sp-12) var(--sp-5)}
+  .tab,.convert-btn,.btn-download,.btn-dl-all,.btn-new-conv,.file-remove,.btn-clear-all,.paste-btn{min-height:48px}
   .file-remove{width:36px;height:36px;min-width:36px;min-height:36px}
 }
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
-  @keyframes kamon-pulse{from,to{transform:scale(1);box-shadow:0 0 8px rgba(192,16,42,.5)}}
-}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-
 <div class="page">
-
-<!-- ═══════════════════════════ NAV ═══════════════════════════ -->
-<nav class="nav" role="banner" aria-label="Site navigation">
-  <div class="nav-brand">
-    <span class="nav-wordmark">Blade<span>Forge</span></span>
-  </div>
+<nav class="nav" aria-label="Site navigation">
+  <span class="nav-wordmark">Blade<span>Forge</span></span>
   <span class="nav-badge">In-Browser Converter</span>
 </nav>
-
-<!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
-<main class="main" id="main-content">
-
-  <!-- Header -->
+<main class="main">
   <header class="header">
     <div class="header-kamon" aria-hidden="true">
-      <!-- Outer ring -->
       <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="position:absolute">
-        <rect x="8" y="8" width="40" height="40" transform="rotate(45 28 28)"
-              stroke="rgba(192,16,42,.2)" stroke-width="1"/>
-        <rect x="14" y="14" width="28" height="28" transform="rotate(45 28 28)"
-              stroke="rgba(192,16,42,.4)" stroke-width="1"/>
+        <rect x="8" y="8" width="40" height="40" transform="rotate(45 28 28)" stroke="rgba(192,16,42,.2)" stroke-width="1"/>
+        <rect x="14" y="14" width="28" height="28" transform="rotate(45 28 28)" stroke="rgba(192,16,42,.4)" stroke-width="1"/>
       </svg>
       <div class="header-kamon-pulse"></div>
     </div>
-
     <h1 class="header-title">Blade<em>Forge</em></h1>
-
     <div class="header-rule" aria-hidden="true">
-      <span class="header-rule-line"></span>
-      <span class="header-rule-icon"></span>
-      <span class="header-rule-line"></span>
+      <span class="header-rule-line"></span><span class="header-rule-icon"></span><span class="header-rule-line"></span>
     </div>
-    <p class="header-sub">Universal in-browser file conversion — no uploads, no server, instant</p>
+    <p class="header-sub">Universal in-browser file conversion & media downloader — no uploads, no server</p>
   </header>
-
-  <!-- Category Tabs -->
-  <div class="tabs-wrap" role="navigation" aria-label="File category">
+  <div class="tabs-wrap" role="navigation" aria-label="Category">
     <div class="tabs" role="tablist">
-
-      <button class="tab active" data-cat="image" role="tab" aria-selected="true" aria-controls="conv-panel">
-        <!-- Image SVG -->
-        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
-          <rect x="2" y="4" width="16" height="13" rx=".5"/>
-          <circle cx="6.5" cy="8.5" r="1.5"/>
-          <path d="M2 13 6 9.5 9.5 13 13 9.5 18 15"/>
-        </svg>
+      <button class="tab active" data-cat="image" role="tab" aria-selected="true">
+        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="2" y="4" width="16" height="13" rx=".5"/><circle cx="6.5" cy="8.5" r="1.5"/><path d="M2 13 6 9.5 9.5 13 13 9.5 18 15"/></svg>
         <span class="tab-label">Image</span>
       </button>
-
-      <button class="tab" data-cat="document" role="tab" aria-selected="false" aria-controls="conv-panel">
-        <!-- Document SVG -->
-        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
-          <path d="M5 2h7l4 4v12H5V2z"/>
-          <path d="M12 2v4h4"/>
-          <line x1="7" y1="9"  x2="13" y2="9"/>
-          <line x1="7" y1="12" x2="13" y2="12"/>
-          <line x1="7" y1="15" x2="10" y2="15"/>
-        </svg>
+      <button class="tab" data-cat="document" role="tab" aria-selected="false">
+        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M5 2h7l4 4v12H5V2z"/><path d="M12 2v4h4"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="12" x2="13" y2="12"/><line x1="7" y1="15" x2="10" y2="15"/></svg>
         <span class="tab-label">Document</span>
       </button>
-
-      <button class="tab" data-cat="data" role="tab" aria-selected="false" aria-controls="conv-panel">
-        <!-- Data SVG -->
-        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
-          <ellipse cx="10" cy="5" rx="7" ry="2.5"/>
-          <path d="M3 5v4c0 1.38 3.13 2.5 7 2.5S17 10.38 17 9V5"/>
-          <path d="M3 9v4c0 1.38 3.13 2.5 7 2.5S17 14.38 17 13V9"/>
-          <path d="M3 13v3c0 1.38 3.13 2.5 7 2.5S17 17.38 17 16v-3"/>
-        </svg>
+      <button class="tab" data-cat="data" role="tab" aria-selected="false">
+        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><ellipse cx="10" cy="5" rx="7" ry="2.5"/><path d="M3 5v4c0 1.38 3.13 2.5 7 2.5S17 10.38 17 9V5"/><path d="M3 9v4c0 1.38 3.13 2.5 7 2.5S17 14.38 17 13V9"/><path d="M3 13v3c0 1.38 3.13 2.5 7 2.5S17 17.38 17 16v-3"/></svg>
         <span class="tab-label">Data</span>
       </button>
-
-      <button class="tab" data-cat="spreadsheet" role="tab" aria-selected="false" aria-controls="conv-panel">
-        <!-- Spreadsheet SVG -->
-        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
-          <rect x="2" y="3" width="16" height="15" rx=".5"/>
-          <line x1="2"  y1="8"  x2="18" y2="8"/>
-          <line x1="2"  y1="13" x2="18" y2="13"/>
-          <line x1="7"  y1="3"  x2="7"  y2="18"/>
-          <line x1="13" y1="3"  x2="13" y2="18"/>
-        </svg>
+      <button class="tab" data-cat="spreadsheet" role="tab" aria-selected="false">
+        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="2" y="3" width="16" height="15" rx=".5"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="2" y1="13" x2="18" y2="13"/><line x1="7" y1="3" x2="7" y2="18"/><line x1="13" y1="3" x2="13" y2="18"/></svg>
         <span class="tab-label">Spreadsheet</span>
       </button>
-
-      <button class="tab" data-cat="links" role="tab" aria-selected="false" aria-controls="conv-panel">
-        <!-- Link SVG -->
-        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
-          <path d="M8.5 11.5a4.5 4.5 0 0 0 6.364 0l2-2a4.5 4.5 0 0 0-6.364-6.364L9 4.636"/>
-          <path d="M11.5 8.5a4.5 4.5 0 0 0-6.364 0l-2 2a4.5 4.5 0 0 0 6.364 6.364L11 15.364"/>
-        </svg>
-        <span class="tab-label">Links</span>
+      <button class="tab" data-cat="links" role="tab" aria-selected="false">
+        <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M8.5 11.5a4.5 4.5 0 0 0 6.364 0l2-2a4.5 4.5 0 0 0-6.364-6.364L9 4.636"/><path d="M11.5 8.5a4.5 4.5 0 0 0-6.364 0l-2 2a4.5 4.5 0 0 0 6.364 6.364L11 15.364"/></svg>
+        <span class="tab-label">Download</span>
       </button>
-
     </div>
   </div>
-
-  <!-- Conversion panel -->
-  <div id="conv-panel" role="region" aria-label="Conversion settings">
-
-    <!-- Format picker -->
+  <div id="conv-panel">
     <div class="conv-row">
       <span class="conv-label">Convert</span>
       <div class="conv-select-wrap">
-        <select class="conv-select" id="conv-select" aria-label="Choose conversion format"></select>
+        <select class="conv-select" id="conv-select" aria-label="Choose format"></select>
       </div>
     </div>
-
-    <!-- Accepted types -->
     <div class="accept-strip" id="accept-strip"></div>
-
-    <!-- Drop Zone (file-based) -->
-    <div class="drop-zone" id="drop-zone" role="button"
-         tabindex="0" aria-label="Upload files — click or drag and drop"
-         aria-describedby="drop-desc">
-      <span class="drop-corner drop-corner-tl" aria-hidden="true"></span>
-      <span class="drop-corner drop-corner-tr" aria-hidden="true"></span>
-      <span class="drop-corner drop-corner-bl" aria-hidden="true"></span>
-      <span class="drop-corner drop-corner-br" aria-hidden="true"></span>
-
-      <!-- Upload arrow SVG -->
-      <svg class="drop-upload-icon" viewBox="0 0 40 40" fill="none"
-           stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+    <div class="size-warn" id="size-warn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(220,170,40,.9)" stroke-width="1.4" aria-hidden="true"><circle cx="7" cy="7" r="6"/><line x1="7" y1="4" x2="7" y2="7.5" stroke-linecap="round"/><circle cx="7" cy="10" r=".6" fill="rgba(220,170,40,.9)" stroke="none"/></svg>
+      <span class="size-warn-text" id="size-warn-text"></span>
+    </div>
+    <div class="resize-row" id="resize-row">
+      <span class="resize-label">New Width</span>
+      <input type="text" class="resize-input" id="resize-input" placeholder="e.g. 800" inputmode="numeric"/>
+      <span class="resize-unit">px</span>
+    </div>
+    <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Upload files">
+      <span class="drop-corner drop-corner-tl"></span><span class="drop-corner drop-corner-tr"></span>
+      <span class="drop-corner drop-corner-bl"></span><span class="drop-corner drop-corner-br"></span>
+      <svg class="drop-upload-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
         <circle cx="20" cy="20" r="18" stroke-width="1" opacity=".3"/>
-        <line x1="20" y1="27" x2="20" y2="13"/>
-        <polyline points="14,19 20,13 26,19"/>
+        <line x1="20" y1="27" x2="20" y2="13"/><polyline points="14,19 20,13 26,19"/>
         <line x1="13" y1="28" x2="27" y2="28" stroke-width="1.2" opacity=".6"/>
       </svg>
-
       <p class="drop-title">Drop files here</p>
-      <p class="drop-sub" id="drop-desc">or click to browse from your device</p>
-      <span class="drop-cta" aria-hidden="true">Choose Files</span>
-
-      <!-- Hidden file input -->
-      <label style="position:absolute;inset:0;cursor:pointer;opacity:0;overflow:hidden" aria-hidden="true">
+      <p class="drop-sub">or click to browse from your device</p>
+      <span class="drop-cta">Choose Files</span>
+      <label style="position:absolute;inset:0;cursor:pointer;opacity:0;overflow:hidden">
         <input type="file" id="file-input" multiple tabindex="-1"/>
       </label>
     </div>
-
-    <!-- Paste textarea (text-based conversions) -->
-    <textarea class="paste-zone hidden" id="paste-input"
-              placeholder="Paste your content here…"
-              aria-label="Paste text content for conversion"
-              spellcheck="false"></textarea>
-
-    <!-- YouTube Download Options -->
+    <div class="paste-zone-wrap hidden" id="paste-zone-wrap">
+      <textarea class="paste-zone" id="paste-input" spellcheck="false"></textarea>
+      <div class="paste-actions">
+        <button class="paste-btn" id="btn-paste-clip">Paste</button>
+        <button class="paste-btn" id="btn-paste-clear">Clear</button>
+      </div>
+    </div>
     <div id="yt-opts" class="hidden">
       <div class="yt-opts-inner">
         <div class="yt-opt-group" id="yt-quality-group">
@@ -873,14 +337,7 @@ body::before{
             <button class="yt-pill" data-q="360">360p</button>
           </div>
         </div>
-        <div class="yt-info-note">
-          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true" style="width:13px;height:13px;flex-shrink:0">
-            <circle cx="7" cy="7" r="6"/>
-            <line x1="7" y1="4.5" x2="7" y2="7.5" stroke-linecap="round"/>
-            <circle cx="7" cy="9.5" r=".6" fill="currentColor" stroke="none"/>
-          </svg>
-          <span>Powered by <a href="https://cobalt.tools" target="_blank" rel="noopener">cobalt.tools</a> — open‑source, no ads, no tracking</span>
-        </div>
+        <p class="yt-platform-info" id="yt-platform-info"></p>
       </div>
     </div>
     <div id="file-list-wrap" class="hidden">
@@ -888,522 +345,400 @@ body::before{
         <span class="file-list-label">Selected Files</span>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="file-count" id="file-count">0</span>
-          <button class="btn-clear-all" id="btn-clear-all" aria-label="Remove all files">Clear All</button>
+          <button class="btn-clear-all" id="btn-clear-all">Clear All</button>
         </div>
       </div>
-      <ul class="file-list" id="file-list" aria-live="polite" aria-label="Selected files"></ul>
+      <ul class="file-list" id="file-list" aria-live="polite"></ul>
     </div>
-
-    <!-- Convert button -->
-    <button class="convert-btn" id="btn-convert" disabled
-            aria-label="Convert selected files"
-            aria-describedby="shortcut-hint">
-      <!-- Blade/convert icon -->
-      <svg class="convert-btn-icon" viewBox="0 0 16 16" fill="none"
-           stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-        <path d="M8 1v9M5 7l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M3 13h10" stroke-linecap="round" opacity=".6"/>
+    <button class="convert-btn" id="btn-convert" disabled>
+      <svg class="convert-btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true" id="conv-icon">
+        <use href="#ico-dl"/>
       </svg>
-      <span id="btn-convert-text">Convert Files</span>
+      <span id="btn-convert-text">Convert File</span>
     </button>
-
-    <!-- Keyboard hint -->
-    <p class="shortcut-hint" id="shortcut-hint" aria-label="Keyboard shortcut: Press Enter to convert">
-      <span>Press</span>
-      <kbd class="key">Enter</kbd>
-      <span>to convert</span>
-    </p>
-
-    <!-- Progress -->
+    <p class="shortcut-hint"><span>Press</span><kbd class="key">Enter</kbd><span>to convert</span></p>
     <div class="progress-section" id="progress-section" aria-live="polite" role="status">
-      <div class="progress-track">
-        <div class="progress-bar" id="progress-bar"></div>
-      </div>
+      <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
       <div class="progress-label">
         <span class="progress-status" id="progress-status">Processing…</span>
         <span class="progress-pct" id="progress-pct">0%</span>
       </div>
     </div>
-
-    <!-- Output -->
-    <div class="output-panel" id="output-panel" role="region" aria-label="Converted files" aria-live="polite">
+    <div class="output-panel" id="output-panel" aria-live="polite">
       <div class="output-header">
-        <!-- Check icon -->
-        <svg class="output-header-icon" viewBox="0 0 18 18" fill="none"
-             stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <svg class="output-header-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <circle cx="9" cy="9" r="7.5"/>
           <polyline points="5.5,9 7.5,11.5 12.5,6.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="output-header-text">Conversion Complete</span>
+        <span class="output-header-text">Ready</span>
         <span class="output-header-line"></span>
       </div>
-      <ul class="output-list" id="output-list" aria-label="Download converted files"></ul>
+      <ul class="output-list" id="output-list"></ul>
       <div class="output-actions" id="output-actions"></div>
     </div>
-
-  </div><!-- /conv-panel -->
-
+    <!-- Download Helper Panel -->
+    <div class="dl-panel" id="dl-panel">
+      <p class="dl-panel-title">Download via External Site</p>
+      <p class="dl-panel-sub">Browser-based media downloading requires a third-party service. Copy your URL then click a site — your link is pre-filled where supported.</p>
+      <div class="dl-copy-row">
+        <input type="text" class="dl-copy-input" id="dl-copy-input" readonly placeholder="Paste a URL in the field above first…"/>
+        <button class="dl-copy-btn" id="dl-copy-btn">Copy URL</button>
+      </div>
+      <div class="dl-sites" id="dl-sites"></div>
+    </div>
+  </div>
 </main>
-
-<!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
-<footer class="footer">
-  <p class="footer-text">A Lin Production</p>
-</footer>
-
-</div><!-- /.page -->
-
-<!-- Toast -->
+<footer class="footer"><p class="footer-text">A Lin Production</p></footer>
+</div>
 <div id="toast" role="alert" aria-live="assertive" aria-atomic="true">
   <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" id="toast-icon" aria-hidden="true"></svg>
   <span id="toast-text"></span>
 </div>
-
-<!-- ═══════════════════════════ SVG DEFS (hidden) ═══════════════════════════ -->
 <svg style="display:none" aria-hidden="true">
   <defs>
-    <symbol id="ico-img" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2">
-      <rect x="2" y="4" width="16" height="13" rx=".5"/>
-      <circle cx="6.5" cy="8.5" r="1.5"/>
-      <path d="M2 13 6 9.5 9.5 13 13 9.5 18 15"/>
-    </symbol>
-    <symbol id="ico-doc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2">
-      <path d="M5 2h7l4 4v12H5V2z"/>
-      <path d="M12 2v4h4"/>
-      <line x1="7" y1="9"  x2="13" y2="9"/>
-      <line x1="7" y1="12" x2="13" y2="12"/>
-      <line x1="7" y1="15" x2="10" y2="15"/>
-    </symbol>
-    <symbol id="ico-data" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2">
-      <ellipse cx="10" cy="5" rx="7" ry="2.5"/>
-      <path d="M3 5v4c0 1.38 3.13 2.5 7 2.5S17 10.38 17 9V5"/>
-      <path d="M3 9v4c0 1.38 3.13 2.5 7 2.5S17 14.38 17 13V9"/>
-      <path d="M3 13v3c0 1.38 3.13 2.5 7 2.5S17 17.38 17 16v-3"/>
-    </symbol>
-    <symbol id="ico-sheet" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2">
-      <rect x="2" y="3" width="16" height="15" rx=".5"/>
-      <line x1="2"  y1="8"  x2="18" y2="8"/>
-      <line x1="2"  y1="13" x2="18" y2="13"/>
-      <line x1="7"  y1="3"  x2="7"  y2="18"/>
-      <line x1="13" y1="3"  x2="13" y2="18"/>
-    </symbol>
-    <symbol id="ico-dl" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
-      <line x1="7" y1="1" x2="7" y2="9" stroke-linecap="round"/>
-      <polyline points="3.5,6 7,9.5 10.5,6" stroke-linecap="round" stroke-linejoin="round"/>
-      <line x1="2" y1="12" x2="12" y2="12" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ico-close" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.3">
-      <line x1="1" y1="1" x2="9" y2="9" stroke-linecap="round"/>
-      <line x1="9" y1="1" x2="1" y2="9" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ico-reload" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
-      <path d="M14 8A6 6 0 1 1 8 2" stroke-linecap="round"/>
-      <polyline points="8,0 8,4 12,2" stroke-linecap="round" stroke-linejoin="round"/>
-    </symbol>
-    <symbol id="ico-ok" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="7" cy="7" r="6"/>
-      <polyline points="4.5,7 6,9 9.5,5" stroke-linecap="round" stroke-linejoin="round"/>
-    </symbol>
-    <symbol id="ico-err" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="7" cy="7" r="6"/>
-      <line x1="5" y1="5" x2="9" y2="9" stroke-linecap="round"/>
-      <line x1="9" y1="5" x2="5" y2="9" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ico-file" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2">
-      <path d="M5 2h7l4 4v12H5V2z"/>
-      <path d="M12 2v4h4"/>
-    </symbol>
-    <symbol id="ico-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
-      <circle cx="8" cy="8" r="6" opacity=".25"/>
-      <path d="M8 2a6 6 0 0 1 6 6" stroke-linecap="round"/>
-    </symbol>
+    <symbol id="ico-file"    viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 2h7l4 4v12H5V2z"/><path d="M12 2v4h4"/></symbol>
+    <symbol id="ico-dl"      viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="7" y1="1" x2="7" y2="9" stroke-linecap="round"/><polyline points="3.5,6 7,9.5 10.5,6" stroke-linecap="round" stroke-linejoin="round"/><line x1="2" y1="12" x2="12" y2="12" stroke-linecap="round"/></symbol>
+    <symbol id="ico-close"   viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1" y1="1" x2="9" y2="9" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke-linecap="round"/></symbol>
+    <symbol id="ico-reload"  viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 8A6 6 0 1 1 8 2" stroke-linecap="round"/><polyline points="8,0 8,4 12,2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ico-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6" opacity=".25"/><path d="M8 2a6 6 0 0 1 6 6" stroke-linecap="round"/></symbol>
+    <symbol id="ico-ext"     viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 12 10 4M5 3h6v6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
-
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   CONVERSION REGISTRY
-═══════════════════════════════════════════════════════════════ */
+'use strict';
+
+// ─── DOWNLOAD SITES ───────────────────────────────────────────────────────────
+// Pre-fills the URL into each site where a query param is supported.
+const DL_SITES = [
+  { name:'SaveFrom',           supports:'YouTube · Instagram · Vimeo · Facebook',
+    buildUrl: u => `https://en.savefrom.net/#url=${encodeURIComponent(u)}` },
+  { name:'SSYouTube',          supports:'YouTube only',
+    buildUrl: u => { const m=u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/); return m?`https://www.ssyoutube.com/watch?v=${m[1]}`:'https://ssyoutube.com'; } },
+  { name:'Y2Mate',             supports:'YouTube · Facebook · Vimeo',
+    buildUrl: u => `https://www.y2mate.com/youtube/${encodeURIComponent(u)}` },
+  { name:'Indown',             supports:'YouTube · TikTok · Instagram · Twitter/X',
+    buildUrl: u => `https://indown.io/?link=${encodeURIComponent(u)}` },
+  { name:'SnapTik',            supports:'TikTok',
+    buildUrl: () => 'https://snaptik.app' },
+  { name:'DownloadGram',       supports:'Instagram',
+    buildUrl: () => 'https://downloadgram.org' },
+  { name:'SoundCloud MP3',     supports:'SoundCloud',
+    buildUrl: () => 'https://soundcloudmp3.org' },
+  { name:'Twitter Video Down', supports:'Twitter / X',
+    buildUrl: u => `https://twittervideodownloader.com/?url=${encodeURIComponent(u)}` },
+];
+
+// Platform info shown per format
+const FORMAT_INFO = {
+  'lk-yt-mp3':  'YouTube · SoundCloud · Spotify · TikTok · Instagram · Vimeo',
+  'lk-yt-mp4':  'YouTube · TikTok · Instagram · Twitter/X · Facebook · Vimeo',
+  'lk-yt-wav':  'YouTube · SoundCloud · Vimeo',
+  'lk-yt-opus': 'YouTube · SoundCloud · Vimeo',
+};
+
+const SIZE_WARN_BYTES = 20 * 1024 * 1024; // 20 MB
+
+// ─── CATS ─────────────────────────────────────────────────────────────────────
 const CATS = {
-  image: [
-    {id:'i-png-jpg',   label:'PNG  →  JPEG',             accept:'.png',                          text:false},
-    {id:'i-jpg-png',   label:'JPEG  →  PNG',             accept:'.jpg,.jpeg',                    text:false},
-    {id:'i-any-webp',  label:'Image  →  WebP',           accept:'.png,.jpg,.jpeg,.gif,.bmp',     text:false},
-    {id:'i-any-jpg',   label:'Image  →  JPEG',           accept:'.png,.gif,.bmp,.webp',          text:false},
-    {id:'i-any-png',   label:'Image  →  PNG',            accept:'.jpg,.jpeg,.gif,.bmp,.webp',    text:false},
-    {id:'i-any-bmp',   label:'Image  →  BMP',            accept:'.png,.jpg,.jpeg',               text:false},
-    {id:'i-multi-pdf', label:'Images  →  PDF  (multi)',  accept:'.png,.jpg,.jpeg,.webp',         text:false, multi:true},
-    {id:'i-svg-png',   label:'SVG  →  PNG',              accept:'.svg',                          text:false},
-    {id:'i-resize',    label:'Resize  Image',            accept:'.png,.jpg,.jpeg,.webp',         text:false},
+  image:[
+    {id:'i-png-jpg',   label:'PNG → JPEG',           accept:'.png',                       text:false},
+    {id:'i-jpg-png',   label:'JPEG → PNG',           accept:'.jpg,.jpeg',                 text:false},
+    {id:'i-any-webp',  label:'Image → WebP',         accept:'.png,.jpg,.jpeg,.gif,.bmp',  text:false},
+    {id:'i-any-jpg',   label:'Image → JPEG',         accept:'.png,.gif,.bmp,.webp',       text:false},
+    {id:'i-any-png',   label:'Image → PNG',          accept:'.jpg,.jpeg,.gif,.bmp,.webp', text:false},
+    {id:'i-any-bmp',   label:'Image → BMP',          accept:'.png,.jpg,.jpeg',            text:false},
+    {id:'i-multi-pdf', label:'Images → PDF (multi)', accept:'.png,.jpg,.jpeg,.webp',      text:false, multi:true},
+    {id:'i-svg-png',   label:'SVG → PNG',            accept:'.svg',                       text:false},
+    {id:'i-resize',    label:'Resize Image',         accept:'.png,.jpg,.jpeg,.webp',      text:false},
   ],
   document:[
-    {id:'d-md-html',      label:'Markdown  →  HTML',       accept:'.md,.txt',   text:false},
-    {id:'d-html-txt',     label:'HTML  →  Plain Text',     accept:'.html,.htm', text:false},
-    {id:'d-txt-pdf',      label:'Text  →  PDF',            accept:'.txt',       text:false},
-    {id:'d-md-pdf',       label:'Markdown  →  PDF',        accept:'.md',        text:false},
-    {id:'d-paste-md-html',label:'Paste Markdown  →  HTML', accept:'',           text:true},
-    {id:'d-paste-txt-pdf',label:'Paste Text  →  PDF',      accept:'',           text:true},
+    {id:'d-md-html',       label:'Markdown → HTML',       accept:'.md,.txt',   text:false},
+    {id:'d-html-txt',      label:'HTML → Plain Text',     accept:'.html,.htm', text:false},
+    {id:'d-txt-pdf',       label:'Text → PDF',            accept:'.txt',       text:false},
+    {id:'d-md-pdf',        label:'Markdown → PDF',        accept:'.md',        text:false},
+    {id:'d-paste-md-html', label:'Paste Markdown → HTML', accept:'',           text:true},
+    {id:'d-paste-txt-pdf', label:'Paste Text → PDF',      accept:'',           text:true},
   ],
   data:[
-    {id:'dt-json-csv',       label:'JSON  →  CSV',         accept:'.json',      text:false},
-    {id:'dt-csv-json',       label:'CSV  →  JSON',         accept:'.csv',       text:false},
-    {id:'dt-json-yaml',      label:'JSON  →  YAML',        accept:'.json',      text:false},
-    {id:'dt-yaml-json',      label:'YAML  →  JSON',        accept:'.yaml,.yml', text:false},
-    {id:'dt-paste-json-csv', label:'Paste JSON  →  CSV',   accept:'',           text:true},
-    {id:'dt-paste-csv-json', label:'Paste CSV  →  JSON',   accept:'',           text:true},
+    {id:'dt-json-csv',       label:'JSON → CSV',       accept:'.json',      text:false},
+    {id:'dt-csv-json',       label:'CSV → JSON',       accept:'.csv',       text:false},
+    {id:'dt-json-yaml',      label:'JSON → YAML',      accept:'.json',      text:false},
+    {id:'dt-yaml-json',      label:'YAML → JSON',      accept:'.yaml,.yml', text:false},
+    {id:'dt-paste-json-csv', label:'Paste JSON → CSV', accept:'',           text:true},
+    {id:'dt-paste-csv-json', label:'Paste CSV → JSON', accept:'',           text:true},
   ],
   spreadsheet:[
-    {id:'ss-csv-xlsx',  label:'CSV  →  Excel (XLSX)',   accept:'.csv',       text:false},
-    {id:'ss-xlsx-csv',  label:'Excel  →  CSV',          accept:'.xlsx,.xls', text:false},
-    {id:'ss-xlsx-json', label:'Excel  →  JSON',         accept:'.xlsx,.xls', text:false},
-    {id:'ss-json-xlsx', label:'JSON Array  →  XLSX',    accept:'.json',      text:false},
-    {id:'ss-csv-html',  label:'CSV  →  HTML Table',     accept:'.csv',       text:false},
+    {id:'ss-csv-xlsx',  label:'CSV → Excel (XLSX)', accept:'.csv',       text:false},
+    {id:'ss-xlsx-csv',  label:'Excel → CSV',        accept:'.xlsx,.xls', text:false},
+    {id:'ss-xlsx-json', label:'Excel → JSON',       accept:'.xlsx,.xls', text:false},
+    {id:'ss-json-xlsx', label:'JSON Array → XLSX',  accept:'.json',      text:false},
+    {id:'ss-csv-html',  label:'CSV → HTML Table',   accept:'.csv',       text:false},
   ],
   links:[
-    {id:'lk-yt-mp3',     label:'YouTube  →  MP3',                accept:'', text:true, ytdl:true, placeholder:'Paste a YouTube URL\ne.g. https://youtube.com/watch?v=dQw4w9WgXcQ'},
-    {id:'lk-yt-mp4',     label:'YouTube  →  MP4  (Video)',       accept:'', text:true, ytdl:true, placeholder:'Paste a YouTube URL\ne.g. https://youtu.be/dQw4w9WgXcQ'},
-    {id:'lk-yt-wav',     label:'YouTube  →  WAV  (Audio)',       accept:'', text:true, ytdl:true, placeholder:'Paste a YouTube URL'},
-    {id:'lk-yt-opus',    label:'YouTube  →  Opus  (Audio)',      accept:'', text:true, ytdl:true, placeholder:'Paste a YouTube URL'},
-    {id:'lk-url-qr',     label:'URL  →  QR Code  (PNG)',         accept:'', text:true, placeholder:'Paste any URL, e.g. https://youtube.com/watch?v=…'},
-    {id:'lk-yt-embed',   label:'YouTube  →  Embed Code  (HTML)', accept:'', text:true, placeholder:'Paste a YouTube URL'},
-    {id:'lk-yt-thumb',   label:'YouTube  →  Thumbnail  (JPG)',   accept:'', text:true, placeholder:'Paste a YouTube URL'},
-    {id:'lk-urls-html',  label:'URLs  →  Bookmark Page  (HTML)', accept:'', text:true, placeholder:'One URL per line:\nhttps://example.com\nhttps://youtube.com/watch?v=…'},
-    {id:'lk-urls-csv',   label:'URLs  →  CSV',                   accept:'', text:true, placeholder:'One URL per line:\nhttps://example.com\nhttps://github.com'},
-    {id:'lk-url-pdf',    label:'URL Info  →  PDF',               accept:'', text:true, placeholder:'Paste any URL to save its info as a PDF reference'},
+    {id:'lk-yt-mp3',    label:'Download → MP3 (Audio)',      accept:'', text:true, ytdl:true, placeholder:'Paste a URL — YouTube, TikTok, SoundCloud, Instagram, Spotify, Vimeo…'},
+    {id:'lk-yt-mp4',    label:'Download → MP4 (Video)',      accept:'', text:true, ytdl:true, placeholder:'Paste a URL — YouTube, TikTok, Instagram, Twitter/X, Facebook, Vimeo…'},
+    {id:'lk-yt-wav',    label:'Download → WAV (Audio)',      accept:'', text:true, ytdl:true, placeholder:'Paste a URL — YouTube, SoundCloud, Vimeo…'},
+    {id:'lk-yt-opus',   label:'Download → Opus (Audio)',     accept:'', text:true, ytdl:true, placeholder:'Paste a URL — YouTube, SoundCloud, Vimeo…'},
+    {id:'lk-url-qr',    label:'URL → QR Code (PNG)',         accept:'', text:true, placeholder:'Paste any URL\ne.g. https://example.com'},
+    {id:'lk-yt-embed',  label:'YouTube → Embed Code (HTML)', accept:'', text:true, placeholder:'Paste a YouTube URL'},
+    {id:'lk-yt-thumb',  label:'YouTube → Thumbnail (JPG)',   accept:'', text:true, placeholder:'Paste a YouTube URL'},
+    {id:'lk-urls-html', label:'URLs → Bookmark Page (HTML)', accept:'', text:true, placeholder:'One URL per line'},
+    {id:'lk-urls-csv',  label:'URLs → CSV',                  accept:'', text:true, placeholder:'One URL per line'},
+    {id:'lk-url-pdf',   label:'URL Info → PDF',              accept:'', text:true, placeholder:'Paste any URL to save its details as PDF'},
   ],
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════════════════════ */
-let cat      = 'image';
-let conv     = CATS.image[0];
-let files    = [];
-let outputs  = [];
-let busy     = false;
-let ytQuality = 'max'; // selected video quality
+// ─── STATE & DOM ──────────────────────────────────────────────────────────────
+let cat='image', conv=CATS.image[0], files=[], outputs=[], busy=false, ytQuality='max';
+const $=id=>document.getElementById(id);
+const tabsEl=$('.tabs')||document.querySelector('.tabs'),selectEl=$('conv-select'),dropZone=$('drop-zone'),
+      fileInputEl=$('file-input'),pasteZoneWrap=$('paste-zone-wrap'),pasteEl=$('paste-input'),
+      fileListWrap=$('file-list-wrap'),fileListEl=$('file-list'),fileCountEl=$('file-count'),
+      btnClearAll=$('btn-clear-all'),btnConvert=$('btn-convert'),btnConvText=$('btn-convert-text'),
+      convIconEl=$('conv-icon'),acceptStrip=$('accept-strip'),progressSec=$('progress-section'),
+      progressBar=$('progress-bar'),progressStatus=$('progress-status'),progressPct=$('progress-pct'),
+      outputPanel=$('output-panel'),outputList=$('output-list'),outputActions=$('output-actions'),
+      sizeWarn=$('size-warn'),sizeWarnText=$('size-warn-text'),resizeRow=$('resize-row'),
+      resizeInput=$('resize-input'),dlPanel=$('dl-panel'),dlSitesEl=$('dl-sites'),
+      dlCopyInput=$('dl-copy-input'),dlCopyBtn=$('dl-copy-btn'),ytPlatformInfo=$('yt-platform-info');
+const tabsElReal=document.querySelector('.tabs');
+const useSvg=(id,cls='')=>`<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
 
-/* ═══════════════════════════════════════════════════════════════
-   DOM REFS
-═══════════════════════════════════════════════════════════════ */
-const $ = id => document.getElementById(id);
-const tabsEl        = document.querySelector('.tabs');
-const selectEl      = $('conv-select');
-const dropZone      = $('drop-zone');
-const fileInputEl   = $('file-input');
-const pasteEl       = $('paste-input');
-const fileListWrap  = $('file-list-wrap');
-const fileListEl    = $('file-list');
-const fileCountEl   = $('file-count');
-const btnClearAll   = $('btn-clear-all');
-const btnConvert    = $('btn-convert');
-const btnConvText   = $('btn-convert-text');
-const acceptStrip   = $('accept-strip');
-const progressSec   = $('progress-section');
-const progressBar   = $('progress-bar');
-const progressStatus= $('progress-status');
-const progressPct   = $('progress-pct');
-const outputPanel   = $('output-panel');
-const outputList    = $('output-list');
-const outputActions = $('output-actions');
-
-/* ═══════════════════════════════════════════════════════════════
-   SVG HELPER
-═══════════════════════════════════════════════════════════════ */
-function useSvg(id,cls=''){
-  return `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════════════════════════ */
+// ─── TOAST ────────────────────────────────────────────────────────────────────
 let toastTimer;
-function showToast(msg, type='ok'){
-  const t=$('toast'), icon=$('toast-icon'), txt=$('toast-text');
-  clearTimeout(toastTimer);
-  t.className='';
-  icon.innerHTML = type==='ok'
-    ? '<circle cx="7" cy="7" r="6"/><polyline points="4.5,7 6,9 9.5,5" stroke-linecap="round" stroke-linejoin="round"/>'
-    : '<circle cx="7" cy="7" r="6"/><line x1="5" y1="5" x2="9" y2="9" stroke-linecap="round"/><line x1="9" y1="5" x2="5" y2="9" stroke-linecap="round"/>';
-  txt.textContent = msg;
-  requestAnimationFrame(()=>{
-    t.className='visible toast-'+(type==='ok'?'ok':'err');
+function showToast(msg,type='ok'){
+  const t=$('toast'),icon=$('toast-icon'),txt=$('toast-text');
+  clearTimeout(toastTimer); t.className='';
+  icon.innerHTML=type==='ok'
+    ?'<circle cx="7" cy="7" r="6"/><polyline points="4.5,7 6,9 9.5,5" stroke-linecap="round" stroke-linejoin="round"/>'
+    :'<circle cx="7" cy="7" r="6"/><line x1="5" y1="5" x2="9" y2="9" stroke-linecap="round"/><line x1="9" y1="5" x2="5" y2="9" stroke-linecap="round"/>';
+  txt.textContent=msg;
+  requestAnimationFrame(()=>{ t.className=`visible toast-${type==='ok'?'ok':'err'}`; });
+  toastTimer=setTimeout(()=>{ t.className=''; },3400);
+}
+
+// ─── PROGRESS ─────────────────────────────────────────────────────────────────
+function setProgress(pct,label='Processing…'){
+  progressSec.style.display=pct>=0?'block':'none';
+  progressBar.style.width=`${Math.max(0,Math.min(100,pct))}%`;
+  progressStatus.textContent=label;
+  progressPct.textContent=`${Math.round(pct)}%`;
+  if(pct>=100) setTimeout(()=>{ progressSec.style.display='none'; progressBar.style.width='0%'; },800);
+}
+
+// ─── DOWNLOAD PANEL ───────────────────────────────────────────────────────────
+function buildDlSites(){
+  dlSitesEl.innerHTML='';
+  DL_SITES.forEach(site=>{
+    const card=document.createElement('div');
+    card.className='dl-site-card';
+    card.innerHTML=`<span class="dl-site-name">${site.name} <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" style="display:inline-block;vertical-align:middle;opacity:.45"><path d="M2 12 10 4M5 3h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="dl-site-supports">${site.supports}</span>`;
+    card.addEventListener('click',()=>{
+      const url=dlCopyInput.value.trim();
+      window.open(site.buildUrl(url||''),'_blank','noopener');
+    });
+    dlSitesEl.appendChild(card);
   });
-  toastTimer = setTimeout(()=>{ t.className=''; }, 3200);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   PROGRESS
-═══════════════════════════════════════════════════════════════ */
-function setProgress(pct, label='Processing…'){
-  progressSec.style.display = pct>=0 ? 'block' : 'none';
-  progressBar.style.width   = Math.max(0,Math.min(100,pct))+'%';
-  progressStatus.textContent = label;
-  progressPct.textContent    = Math.round(pct)+'%';
-  if(pct>=100){
-    setTimeout(()=>{ progressSec.style.display='none'; progressBar.style.width='0%'; },700);
-  }
+function showDlPanel(url){
+  dlCopyInput.value=url||'';
+  dlPanel.classList.add('visible');
+}
+function hideDlPanel(){
+  dlPanel.classList.remove('visible');
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   UI BUILDERS
-═══════════════════════════════════════════════════════════════ */
+dlCopyBtn.addEventListener('click',()=>{
+  const url=dlCopyInput.value.trim();
+  if(!url) return;
+  navigator.clipboard.writeText(url).then(()=>{
+    dlCopyBtn.textContent='Copied!';
+    dlCopyBtn.classList.add('copied');
+    setTimeout(()=>{ dlCopyBtn.textContent='Copy URL'; dlCopyBtn.classList.remove('copied'); },1800);
+  }).catch(()=>{ dlCopyInput.select(); document.execCommand('copy'); });
+});
+
+// ─── BUILD SELECT ─────────────────────────────────────────────────────────────
 function buildSelect(){
   selectEl.innerHTML='';
-  CATS[cat].forEach(c=>{
-    const o=document.createElement('option');
-    o.value=c.id; o.textContent=c.label; selectEl.appendChild(o);
-  });
-  conv=CATS[cat][0];
-  updateMode();
+  for(const c of CATS[cat]){ const o=document.createElement('option'); o.value=c.id; o.textContent=c.label; selectEl.appendChild(o); }
+  conv=CATS[cat][0]; updateMode();
 }
 
+// ─── UPDATE MODE ──────────────────────────────────────────────────────────────
 function updateMode(){
-  const id=selectEl.value;
-  conv=CATS[cat].find(c=>c.id===id)||CATS[cat][0];
-  files=[]; outputs=[];
-  renderFileList();
-  outputPanel.style.display='none';
-  pasteEl.value='';
-  outputList.innerHTML='';
-  outputActions.innerHTML='';
+  conv=CATS[cat].find(c=>c.id===selectEl.value)??CATS[cat][0];
+  files=[]; outputs=[]; renderFileList();
+  outputPanel.style.display='none'; pasteEl.value=''; outputList.innerHTML=''; outputActions.innerHTML='';
+  sizeWarn.classList.remove('visible'); resizeRow.classList.remove('visible'); hideDlPanel();
 
-  // Accept strip
   acceptStrip.innerHTML='';
-  if(!conv.text && conv.accept){
+  if(!conv.text&&conv.accept){
     const badge=document.createElement('div'); badge.className='accept-badge';
     badge.innerHTML=`${useSvg('ico-file')} <span>${conv.accept.replace(/\./g,'').toUpperCase()}</span>`;
     acceptStrip.appendChild(badge);
     const hint=document.createElement('span'); hint.className='accept-hint';
-    hint.textContent= conv.multi ? 'Multiple files supported' : 'Single or multiple files';
+    hint.textContent=conv.multi?'Multiple files supported':'Single or multiple files';
     acceptStrip.appendChild(hint);
   }
 
-  const ytOptsEl = $('yt-opts');
-  const ytQualityGroup = $('yt-quality-group');
-
   if(conv.text){
-    dropZone.classList.add('hidden');
-    pasteEl.classList.remove('hidden');
-    pasteEl.setAttribute('placeholder', conv.placeholder || 'Paste your content here…');
-    pasteEl.setAttribute('aria-label','Paste content for conversion');
+    dropZone.classList.add('hidden'); pasteZoneWrap.classList.remove('hidden');
+    pasteEl.setAttribute('placeholder',conv.placeholder??'Paste your content here…');
   } else {
-    dropZone.classList.remove('hidden');
-    pasteEl.classList.add('hidden');
-    fileInputEl.accept   = conv.accept||'*';
-    fileInputEl.multiple = !!conv.multi;
+    dropZone.classList.remove('hidden'); pasteZoneWrap.classList.add('hidden');
+    fileInputEl.accept=conv.accept||'*'; fileInputEl.multiple=!!conv.multi;
   }
 
-  // Show YouTube quality options only for video downloads
+  if(conv.id==='i-resize') resizeRow.classList.add('visible');
+
+  const ytOptsEl=$('yt-opts');
   if(conv.ytdl){
     ytOptsEl.classList.remove('hidden');
-    // Only show quality pill for MP4 (video), hide for audio-only formats
-    const isVideo = conv.id === 'lk-yt-mp4';
-    ytQualityGroup.style.display = isVideo ? 'flex' : 'none';
+    $('yt-quality-group').style.display=conv.id==='lk-yt-mp4'?'flex':'none';
+    ytPlatformInfo.textContent=FORMAT_INFO[conv.id]??'';
+    buildDlSites();
+    showDlPanel('');
   } else {
-    ytOptsEl.classList.add('hidden');
+    ytOptsEl.classList.add('hidden'); hideDlPanel();
   }
-
   updateBtn();
 }
 
+// ─── FILE LIST ────────────────────────────────────────────────────────────────
 function renderFileList(){
   fileListEl.innerHTML='';
-  if(files.length===0){
-    fileListWrap.classList.add('hidden');
-    fileCountEl.textContent='0';
-    return;
-  }
-  fileListWrap.classList.remove('hidden');
-  fileCountEl.textContent=files.length;
+  if(!files.length){ fileListWrap.classList.add('hidden'); fileCountEl.textContent='0'; sizeWarn.classList.remove('visible'); return; }
+  fileListWrap.classList.remove('hidden'); fileCountEl.textContent=files.length;
+  const total=files.reduce((s,f)=>s+f.size,0);
+  if(total>SIZE_WARN_BYTES&&!conv.ytdl){
+    sizeWarnText.textContent=`Large file(s) — ${(total/1048576).toFixed(1)} MB total — may freeze the tab`;
+    sizeWarn.classList.add('visible');
+  } else { sizeWarn.classList.remove('visible'); }
   files.forEach((f,i)=>{
-    const ext  = f.name.split('.').pop().toUpperCase();
-    const size = f.size<1048576 ? (f.size/1024).toFixed(1)+' KB' : (f.size/1048576).toFixed(1)+' MB';
-    const li   = document.createElement('li'); li.className='file-item';
-    li.setAttribute('role','listitem');
-    li.innerHTML=`
-      <svg class="file-type-icon" style="color:var(--c-ash-40)" aria-hidden="true"><use href="#ico-file"/></svg>
-      <span class="file-ext-badge">.${ext}</span>
-      <div class="file-info">
-        <span class="file-name" title="${f.name}">${f.name}</span>
-        <span class="file-meta">${size}</span>
-      </div>
-      <button class="file-remove" aria-label="Remove ${f.name}" data-i="${i}">
-        ${useSvg('ico-close')}
-      </button>`;
+    const ext=f.name.split('.').pop().toUpperCase();
+    const size=f.size<1048576?`${(f.size/1024).toFixed(1)} KB`:`${(f.size/1048576).toFixed(1)} MB`;
+    const li=document.createElement('li'); li.className='file-item';
+    li.innerHTML=`<svg class="file-type-icon" style="color:var(--c-ash-40)" aria-hidden="true"><use href="#ico-file"/></svg><span class="file-ext-badge">.${ext}</span><div class="file-info"><span class="file-name" title="${f.name}">${f.name}</span><span class="file-meta">${size}</span></div><button class="file-remove" data-i="${i}" aria-label="Remove">${useSvg('ico-close')}</button>`;
     fileListEl.appendChild(li);
   });
   fileListEl.querySelectorAll('.file-remove').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      files.splice(+btn.dataset.i,1);
-      renderFileList(); updateBtn();
-    });
+    btn.addEventListener('click',()=>{ files.splice(+btn.dataset.i,1); renderFileList(); updateBtn(); });
   });
 }
 
-function addOutput(name, blob){
+// ─── OUTPUT ───────────────────────────────────────────────────────────────────
+function addOutput(name,blob){
   outputs.push({name,blob});
-  const size = blob.size<1048576 ? (blob.size/1024).toFixed(1)+' KB' : (blob.size/1048576).toFixed(1)+' MB';
-  const li   = document.createElement('li'); li.className='output-item';
-  li.style.animationDelay=(outputs.length-1)*0.06+'s';
-  li.innerHTML=`
-    <svg class="output-file-icon" aria-hidden="true"><use href="#ico-file"/></svg>
-    <div class="output-info">
-      <span class="output-name" title="${name}">${name}</span>
-      <span class="output-size">${size}</span>
-    </div>
-    <button class="btn-download" aria-label="Download ${name}">
-      ${useSvg('ico-dl')} Download
-    </button>`;
+  const size=blob.size<1048576?`${(blob.size/1024).toFixed(1)} KB`:`${(blob.size/1048576).toFixed(1)} MB`;
+  const li=document.createElement('li'); li.className='output-item'; li.style.animationDelay=`${(outputs.length-1)*0.06}s`;
+  li.innerHTML=`<svg class="output-file-icon" aria-hidden="true"><use href="#ico-file"/></svg><div class="output-info"><span class="output-name" title="${name}">${name}</span><span class="output-size">${size}</span></div><button class="btn-download">${useSvg('ico-dl')} Download</button>`;
   li.querySelector('.btn-download').addEventListener('click',()=>dlBlob(blob,name));
-  outputList.appendChild(li);
-  outputPanel.style.display='block';
+  outputList.appendChild(li); outputPanel.style.display='block';
 }
 
-/** For stream/tunnel URLs returned by cobalt — no blob needed */
-function addLinkOutput(name, url, meta=''){
-  outputs.push({name, url});
-  const li = document.createElement('li'); li.className='output-item';
-  li.style.animationDelay=(outputs.length-1)*0.06+'s';
-  li.innerHTML=`
-    <svg class="output-file-icon" aria-hidden="true"><use href="#ico-file"/></svg>
-    <div class="output-info">
-      <span class="output-name" title="${name}">${name}</span>
-      <span class="output-size">${meta}</span>
-    </div>
-    <a class="btn-download" href="${url}" download="${name}" target="_blank" rel="noopener"
-       aria-label="Download ${name}" style="text-decoration:none">
-      ${useSvg('ico-dl')} Download
-    </a>`;
-  outputList.appendChild(li);
-  outputPanel.style.display='block';
+function addLinkOutput(name,url,meta=''){
+  outputs.push({name,url});
+  const li=document.createElement('li'); li.className='output-item'; li.style.animationDelay=`${(outputs.length-1)*0.06}s`;
+  li.innerHTML=`<svg class="output-file-icon" aria-hidden="true"><use href="#ico-file"/></svg><div class="output-info"><span class="output-name" title="${name}">${name}</span><span class="output-size">${meta}</span></div><a class="btn-download" href="${url}" download="${name}" target="_blank" rel="noopener">${useSvg('ico-dl')} Download</a>`;
+  outputList.appendChild(li); outputPanel.style.display='block';
 }
 
 function buildOutputActions(){
   outputActions.innerHTML='';
   if(outputs.length>1){
-    const dlAll = document.createElement('button'); dlAll.className='btn-dl-all';
+    const dlAll=document.createElement('button'); dlAll.className='btn-dl-all';
     dlAll.innerHTML=`${useSvg('ico-dl')} Download All (${outputs.length})`;
-    dlAll.addEventListener('click',()=>{ outputs.forEach(o=>dlBlob(o.blob,o.name)); });
+    dlAll.addEventListener('click',()=>outputs.forEach(o=>{ if(o.blob) dlBlob(o.blob,o.name); }));
     outputActions.appendChild(dlAll);
   }
-  const newConv = document.createElement('button'); newConv.className='btn-new-conv';
-  newConv.innerHTML=`${useSvg('ico-reload')} New Conversion`;
-  newConv.addEventListener('click',()=>{ files=[]; outputs=[]; renderFileList();
-    outputPanel.style.display='none'; outputList.innerHTML=''; outputActions.innerHTML='';
-    updateBtn(); scrollTo({top:0,behavior:'smooth'}); });
-  outputActions.appendChild(newConv);
+  const nc=document.createElement('button'); nc.className='btn-new-conv';
+  nc.innerHTML=`${useSvg('ico-reload')} New Conversion`;
+  nc.addEventListener('click',()=>{ files=[]; outputs=[]; renderFileList(); outputPanel.style.display='none'; outputList.innerHTML=''; outputActions.innerHTML=''; hideDlPanel(); updateBtn(); scrollTo({top:0,behavior:'smooth'}); });
+  outputActions.appendChild(nc);
 }
 
 function updateBtn(){
-  const ready = conv.text
-    ? pasteEl.value.trim().length>0
-    : files.length>0;
-  btnConvert.disabled = !ready || busy;
-  btnConvText.textContent = busy ? 'Converting…' : (files.length>1 ? `Convert ${files.length} Files` : 'Convert File');
+  const hasInput=conv.text?pasteEl.value.trim().length>0:files.length>0;
+  btnConvert.disabled=(!hasInput&&!conv.ytdl)||busy;
+  btnConvText.textContent=busy?'Processing…':conv.ytdl?'Show Download Sites':files.length>1?`Convert ${files.length} Files`:'Convert File';
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   EVENTS
-═══════════════════════════════════════════════════════════════ */
-// Tabs
-tabsEl.addEventListener('click',e=>{
+// ─── EVENTS ───────────────────────────────────────────────────────────────────
+tabsElReal.addEventListener('click',e=>{
   const t=e.target.closest('.tab'); if(!t||busy) return;
   document.querySelectorAll('.tab').forEach(x=>{ x.classList.remove('active'); x.setAttribute('aria-selected','false'); });
   t.classList.add('active'); t.setAttribute('aria-selected','true');
   cat=t.dataset.cat; buildSelect();
 });
-
-// Select
 selectEl.addEventListener('change',updateMode);
-pasteEl.addEventListener('input',updateBtn);
+pasteEl.addEventListener('input',()=>{ updateBtn(); if(conv.ytdl) dlCopyInput.value=pasteEl.value.trim().split('\n')[0]; });
 
-// Drop zone click / keyboard
+$('btn-paste-clip').addEventListener('click',async()=>{
+  try{ const text=await navigator.clipboard.readText(); pasteEl.value=text; updateBtn(); if(conv.ytdl) dlCopyInput.value=text.trim().split('\n')[0]; }
+  catch{ showToast('Clipboard access denied — paste manually','err'); }
+});
+$('btn-paste-clear').addEventListener('click',()=>{ pasteEl.value=''; dlCopyInput.value=''; updateBtn(); });
+
 dropZone.addEventListener('click',()=>fileInputEl.click());
 dropZone.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInputEl.click(); }});
-
-// Drag & drop
 dropZone.addEventListener('dragenter',e=>{ e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragover', e=>{ e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragover',e=>{ e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave',e=>{ if(!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over'); });
-dropZone.addEventListener('drop',e=>{
-  e.preventDefault(); dropZone.classList.remove('drag-over');
-  addFiles([...e.dataTransfer.files]);
-});
-
-// File input
+dropZone.addEventListener('drop',e=>{ e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles([...e.dataTransfer.files]); });
 fileInputEl.addEventListener('change',()=>{ addFiles([...fileInputEl.files]); fileInputEl.value=''; });
-
-// Clear all
 btnClearAll.addEventListener('click',()=>{ files=[]; renderFileList(); updateBtn(); });
-
-// Quality pills
-document.getElementById('yt-quality-pills').addEventListener('click', e=>{
-  const pill = e.target.closest('.yt-pill'); if(!pill) return;
-  document.querySelectorAll('.yt-pill').forEach(p=>p.classList.remove('active'));
-  pill.classList.add('active');
-  ytQuality = pill.dataset.q;
-});
-
-// Global drag-over visual feedback
 document.addEventListener('dragover',e=>e.preventDefault());
-
-// Keyboard shortcut: Enter → convert
 document.addEventListener('keydown',e=>{
-  if(e.key==='Enter' && document.activeElement.tagName!=='BUTTON'
-     && document.activeElement.tagName!=='TEXTAREA'
-     && document.activeElement.tagName!=='SELECT'
-     && !btnConvert.disabled && !busy){
-    btnConvert.click();
-  }
+  if(e.key==='Enter'&&!['BUTTON','TEXTAREA','SELECT','INPUT'].includes(document.activeElement.tagName)&&!btnConvert.disabled&&!busy) btnConvert.click();
+});
+$('yt-quality-pills').addEventListener('click',e=>{
+  const pill=e.target.closest('.yt-pill'); if(!pill) return;
+  document.querySelectorAll('.yt-pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active'); ytQuality=pill.dataset.q;
 });
 
 function addFiles(newFiles){
   if(!conv.multi) files=[];
-  newFiles.forEach(f=>{
-    if(!files.find(x=>x.name===f.name&&x.size===f.size)) files.push(f);
-  });
+  for(const f of newFiles){ if(!files.find(x=>x.name===f.name&&x.size===f.size)) files.push(f); }
   renderFileList(); updateBtn();
 }
-
 function dlBlob(blob,name){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   CONVERSION HELPERS
-═══════════════════════════════════════════════════════════════ */
-const readAB  = f=>new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsArrayBuffer(f); });
-const readTxt = f=>new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsText(f); });
-const loadImg = src=>new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('Image load failed')); i.src=src; });
+// ─── FILE READERS ─────────────────────────────────────────────────────────────
+const readAB=f=>new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsArrayBuffer(f); });
+const readTxt=f=>new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsText(f); });
+const loadImg=src=>new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('Image load failed')); i.src=src; });
 
-function canvasConvert(file, mime, q=.92){
-  return new Promise(async(res,rej)=>{
-    try{
-      const url=URL.createObjectURL(file);
-      const img=await loadImg(url); URL.revokeObjectURL(url);
-      const c=document.createElement('canvas');
-      c.width=img.naturalWidth; c.height=img.naturalHeight;
+// ─── IMAGE OPS ────────────────────────────────────────────────────────────────
+// Fixed: no async Promise constructor antipattern
+function canvasConvert(file,mime,q=0.92){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file);
+    loadImg(url).then(img=>{
+      URL.revokeObjectURL(url);
+      const c=document.createElement('canvas'); c.width=img.naturalWidth; c.height=img.naturalHeight;
       const ctx=c.getContext('2d');
       if(mime==='image/jpeg'){ ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height); }
-      ctx.drawImage(img,0,0);
-      c.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),mime,q);
-    }catch(e){rej(e)}
+      ctx.drawImage(img,0,0); c.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),mime,q);
+    }).catch(rej);
   });
 }
 
 function svgToPng(file){
-  return new Promise(async(res,rej)=>{
-    try{
-      const txt=await readTxt(file);
+  return new Promise((res,rej)=>{
+    readTxt(file).then(txt=>{
       const url=URL.createObjectURL(new Blob([txt],{type:'image/svg+xml'}));
-      const img=await loadImg(url); URL.revokeObjectURL(url);
-      const c=document.createElement('canvas');
-      c.width=img.naturalWidth||800; c.height=img.naturalHeight||600;
-      c.getContext('2d').drawImage(img,0,0);
-      c.toBlob(b=>b?res(b):rej(new Error('SVG conversion failed')),'image/png');
-    }catch(e){rej(e)}
+      return loadImg(url).then(img=>{
+        URL.revokeObjectURL(url);
+        const c=document.createElement('canvas'); c.width=img.naturalWidth||800; c.height=img.naturalHeight||600;
+        c.getContext('2d').drawImage(img,0,0); c.toBlob(b=>b?res(b):rej(new Error('SVG failed')),'image/png');
+      });
+    }).catch(rej);
   });
 }
 
@@ -1414,32 +749,25 @@ function ab2dataurl(ab,mime){
 }
 
 async function imgsToPdf(blobs){
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF({orientation:'portrait',unit:'px',hotfixes:['px_scaling']});
+  const{jsPDF}=window.jspdf; const pdf=new jsPDF({orientation:'portrait',unit:'px',hotfixes:['px_scaling']});
   let first=true;
   for(const blob of blobs){
-    const url=URL.createObjectURL(blob);
-    const img=await loadImg(url); URL.revokeObjectURL(url);
-    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
-    const sc=Math.min(pw/img.naturalWidth, ph/img.naturalHeight);
-    const w=img.naturalWidth*sc, h=img.naturalHeight*sc;
+    const url=URL.createObjectURL(blob); const img=await loadImg(url); URL.revokeObjectURL(url);
+    const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+    const sc=Math.min(pw/img.naturalWidth,ph/img.naturalHeight);
+    const w=img.naturalWidth*sc,h=img.naturalHeight*sc;
     if(!first) pdf.addPage(); first=false;
-    const ab=await readAB(blob);
-    const ext=(blob.type||'image/png').split('/')[1].toUpperCase();
+    const ab=await readAB(blob); const ext=(blob.type||'image/png').split('/')[1].toUpperCase();
     pdf.addImage(ab2dataurl(ab,blob.type||'image/png'),ext,(pw-w)/2,(ph-h)/2,w,h);
   }
   return pdf.output('blob');
 }
 
+// ─── DATA OPS ─────────────────────────────────────────────────────────────────
 function obj2yaml(o,d=0){
   const p='  '.repeat(d); let s='';
-  if(Array.isArray(o)){
-    o.forEach(v=>{ s+=typeof v==='object'&&v!==null?p+'-\n'+obj2yaml(v,d+1):p+'- '+JSON.stringify(v)+'\n'; });
-  } else if(typeof o==='object'&&o!==null){
-    for(const[k,v] of Object.entries(o)){
-      s+=typeof v==='object'&&v!==null?p+k+':\n'+obj2yaml(v,d+1):p+k+': '+JSON.stringify(v)+'\n';
-    }
-  }
+  if(Array.isArray(o)) o.forEach(v=>{ s+=typeof v==='object'&&v?p+'-\n'+obj2yaml(v,d+1):p+'- '+JSON.stringify(v)+'\n'; });
+  else if(typeof o==='object'&&o) for(const[k,v] of Object.entries(o)) s+=typeof v==='object'&&v?p+k+':\n'+obj2yaml(v,d+1):p+k+': '+JSON.stringify(v)+'\n';
   return s;
 }
 
@@ -1447,11 +775,10 @@ function yaml2obj(yaml){
   const lines=yaml.split('\n'),root={},stack=[{obj:root,indent:-1}];
   for(const ln of lines){
     if(!ln.trim()||ln.trim().startsWith('#')) continue;
-    const ind=ln.search(/\S/), m=ln.trim().match(/^([^:]+):\s*(.*)$/);
-    if(!m) continue;
+    const ind=ln.search(/\S/),m=ln.trim().match(/^([^:]+):\s*(.*)$/); if(!m) continue;
     const[,k,v]=m;
-    while(stack.length>1&&stack[stack.length-1].indent>=ind) stack.pop();
-    const p=stack[stack.length-1].obj;
+    while(stack.length>1&&stack.at(-1).indent>=ind) stack.pop();
+    const p=stack.at(-1).obj;
     if(v){ try{p[k.trim()]=JSON.parse(v)}catch{p[k.trim()]=v} }
     else{ p[k.trim()]={};stack.push({obj:p[k.trim()],indent:ind}); }
   }
@@ -1463,7 +790,7 @@ function csv2arr(csv){
   const h=lines[0].split(',').map(x=>x.trim().replace(/^"|"$/g,''));
   return lines.slice(1).filter(l=>l.trim()).map(l=>{
     const vals=l.split(',').map(v=>v.trim().replace(/^"|"$/g,''));
-    const obj={}; h.forEach((k,i)=>obj[k]=vals[i]??''); return obj;
+    return Object.fromEntries(h.map((k,i)=>[k,vals[i]??'']));
   });
 }
 
@@ -1473,528 +800,208 @@ function arr2csv(arr){
   return[h.join(','),...arr.map(r=>h.map(k=>`"${String(r[k]??'').replace(/"/g,'""')}"`).join(','))].join('\n');
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   MAIN CONVERTER
-═══════════════════════════════════════════════════════════════ */
-btnConvert.addEventListener('click', run);
+// ─── URL / QR ─────────────────────────────────────────────────────────────────
+function extractYTId(url){ return url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/(?:embed|shorts)\/)([a-zA-Z0-9_-]{11})/)?.[1]??null; }
 
-async function run(){
-  if(busy) return;
-  busy=true;
-  outputList.innerHTML=''; outputActions.innerHTML=''; outputPanel.style.display='none';
-  outputs=[]; updateBtn();
-
-  // Loading state
-  btnConvert.classList.add('loading');
-  btnConvText.textContent='Converting…';
-  const convertIcon = btnConvert.querySelector('.convert-btn-icon');
-  convertIcon.innerHTML='<use href="#ico-spinner"/>';
-
-  try{
-    const id=conv.id;
-    const fls=files;
-    const ptxt=pasteEl.value;
-    const total=fls.length||1;
-    let done=0;
-
-    const tick=(label)=>{ done++; setProgress(done/total*100,label); };
-
-    /* ─ IMAGE ─ */
-    if(['i-png-jpg','i-any-jpg'].includes(id)){
-      for(const f of fls){
-        setProgress(done/total*100,`Converting ${f.name}…`);
-        addOutput(f.name.replace(/\.[^.]+$/,'.jpg'), await canvasConvert(f,'image/jpeg',.92));
-        tick('Done');
-      }
-    } else if(['i-jpg-png','i-any-png'].includes(id)){
-      for(const f of fls){ setProgress(done/total*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.png'),await canvasConvert(f,'image/png')); tick('Done'); }
-    } else if(id==='i-any-webp'){
-      for(const f of fls){ setProgress(done/total*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.webp'),await canvasConvert(f,'image/webp',.9)); tick('Done'); }
-    } else if(id==='i-any-bmp'){
-      for(const f of fls){ setProgress(done/total*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.bmp'),await canvasConvert(f,'image/bmp')); tick('Done'); }
-    } else if(id==='i-svg-png'){
-      for(const f of fls){ setProgress(done/total*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.png'),await svgToPng(f)); tick('Done'); }
-    } else if(id==='i-multi-pdf'){
-      setProgress(20,'Building PDF…');
-      const blobs=fls.map(f=>new Blob([f],{type:f.type}));
-      addOutput('images-compiled.pdf', await imgsToPdf(blobs));
-      setProgress(100,'Done');
-    } else if(id==='i-resize'){
-      for(const f of fls){
-        const url=URL.createObjectURL(f); const img=await loadImg(url); URL.revokeObjectURL(url);
-        const w=prompt(`Resize width for "${f.name}"\nCurrent: ${img.naturalWidth}px\nNew width (px):`,img.naturalWidth);
-        if(!w||isNaN(parseInt(w))){ done++; continue; }
-        const sc=parseInt(w)/img.naturalWidth;
-        const c=document.createElement('canvas'); c.width=parseInt(w); c.height=Math.round(img.naturalHeight*sc);
-        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-        addOutput('resized-'+f.name, await new Promise(r=>c.toBlob(r,f.type||'image/png')));
-        tick('Done');
-      }
-    }
-
-    /* ─ DOCUMENT ─ */
-    else if(['d-md-html','d-paste-md-html'].includes(id)){
-      const inputs=id.startsWith('d-paste')?[{name:'output.html',c:ptxt}]:
-        await Promise.all(fls.map(async f=>({name:f.name,c:await readTxt(f)})));
-      for(const{name,c} of inputs){
-        const body=typeof marked!=='undefined'?marked.parse(c):`<pre>${c}</pre>`;
-        const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:Georgia,serif;max-width:820px;margin:48px auto;line-height:1.75;padding:0 24px;color:#1a1a1a}h1,h2,h3{margin:1.5em 0 .5em}code{background:#f4f4f4;padding:1px 5px}pre{background:#f4f4f4;padding:16px;overflow:auto}</style></head><body>${body}</body></html>`;
-        addOutput(name.replace(/\.[^.]+$/,'.html'),new Blob([html],{type:'text/html'})); tick('Done');
-      }
-    } else if(id==='d-html-txt'){
-      for(const f of fls){ const t=await readTxt(f); const d=document.createElement('div'); d.innerHTML=t;
-        addOutput(f.name.replace(/\.[^.]+$/,'.txt'),new Blob([d.innerText||d.textContent],{type:'text/plain'})); tick('Done'); }
-    } else if(['d-txt-pdf','d-md-pdf','d-paste-txt-pdf'].includes(id)){
-      const{jsPDF}=window.jspdf;
-      const inputs=id.startsWith('d-paste')?[{name:'output',c:ptxt}]:
-        await Promise.all(fls.map(async f=>({name:f.name.replace(/\.[^.]+$/,''),c:await readTxt(f)})));
-      for(const{name,c} of inputs){
-        const pdf=new jsPDF(); const lines=pdf.splitTextToSize(c,180);
-        let y=15; for(const l of lines){ if(y>280){pdf.addPage();y=15;} pdf.text(l,15,y);y+=7; }
-        addOutput(name+'.pdf',pdf.output('blob')); tick('Done');
-      }
-    }
-
-    /* ─ DATA ─ */
-    else if(['dt-json-csv','dt-paste-json-csv'].includes(id)){
-      const inputs=id.startsWith('dt-paste')?[{name:'output.csv',c:ptxt}]:
-        await Promise.all(fls.map(async f=>({name:f.name,c:await readTxt(f)})));
-      for(const{name,c} of inputs){
-        const arr=JSON.parse(c);
-        addOutput(name.replace(/\.[^.]+$/,'.csv'),new Blob([arr2csv(Array.isArray(arr)?arr:[arr])],{type:'text/csv'})); tick('Done');
-      }
-    } else if(['dt-csv-json','dt-paste-csv-json'].includes(id)){
-      const inputs=id.startsWith('dt-paste')?[{name:'output.json',c:ptxt}]:
-        await Promise.all(fls.map(async f=>({name:f.name,c:await readTxt(f)})));
-      for(const{name,c} of inputs){
-        addOutput(name.replace(/\.[^.]+$/,'.json'),new Blob([JSON.stringify(csv2arr(c),null,2)],{type:'application/json'})); tick('Done');
-      }
-    } else if(id==='dt-json-yaml'){
-      for(const f of fls){ const t=await readTxt(f); addOutput(f.name.replace(/\.[^.]+$/,'.yaml'),new Blob([obj2yaml(JSON.parse(t))],{type:'text/yaml'})); tick('Done'); }
-    } else if(id==='dt-yaml-json'){
-      for(const f of fls){ const t=await readTxt(f); addOutput(f.name.replace(/\.[^.]+$/,'.json'),new Blob([JSON.stringify(yaml2obj(t),null,2)],{type:'application/json'})); tick('Done'); }
-    }
-
-    /* ─ SPREADSHEET ─ */
-    else if(id==='ss-csv-xlsx'){
-      for(const f of fls){ const t=await readTxt(f); const wb=XLSX.read(t,{type:'string'});
-        addOutput(f.name.replace(/\.[^.]+$/,'.xlsx'),new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); tick('Done'); }
-    } else if(id==='ss-xlsx-csv'){
-      for(const f of fls){ const ab=await readAB(f); const wb=XLSX.read(ab,{type:'array'});
-        addOutput(f.name.replace(/\.[^.]+$/,'.csv'),new Blob([XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]])],{type:'text/csv'})); tick('Done'); }
-    } else if(id==='ss-xlsx-json'){
-      for(const f of fls){ const ab=await readAB(f); const wb=XLSX.read(ab,{type:'array'});
-        addOutput(f.name.replace(/\.[^.]+$/,'.json'),new Blob([JSON.stringify(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]),null,2)],{type:'application/json'})); tick('Done'); }
-    } else if(id==='ss-json-xlsx'){
-      for(const f of fls){ const arr=JSON.parse(await readTxt(f)); const ws=XLSX.utils.json_to_sheet(Array.isArray(arr)?arr:[arr]);
-        const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Sheet1');
-        addOutput(f.name.replace(/\.[^.]+$/,'.xlsx'),new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); tick('Done'); }
-    } else if(id==='ss-csv-html'){
-      for(const f of fls){
-        const arr=csv2arr(await readTxt(f)); if(!arr.length){tick('Done');continue;}
-        const hs=Object.keys(arr[0]);
-        const th=hs.map(h=>`<th>${h}</th>`).join('');
-        const tr=arr.map(r=>`<tr>${hs.map(k=>`<td>${r[k]??''}</td>`).join('')}</tr>`).join('');
-        const tbl=`<table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`;
-        const htm=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{font-family:Georgia,serif;padding:24px;background:#0c0d10;color:#ede9e2}table{width:100%;border-collapse:collapse}th,td{padding:9px 14px;border:1px solid rgba(255,255,255,.08);text-align:left;font-size:.9rem}th{background:rgba(192,16,42,.12);color:#ede9e2;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}tr:hover{background:rgba(255,255,255,.03)}</style></head><body>${tbl}</body></html>`;
-        addOutput(f.name.replace(/\.[^.]+$/,'.html'),new Blob([htm],{type:'text/html'})); tick('Done');
-      }
-    }
-
-    /* ─ LINKS — YouTube Downloads ─ */
-    else if(id==='lk-yt-mp3'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      if(!urls.length) throw new Error('Please paste at least one YouTube URL');
-      for(let i=0;i<urls.length;i++){
-        const url=urls[i];
-        setProgress((i/urls.length)*90, `Fetching MP3 for ${url.slice(0,40)}…`);
-        const vid = extractYTId(url);
-        const result = await cobaltFetch(url,'audio','mp3');
-        const fname = (vid||'audio')+'.mp3';
-        addLinkOutput(fname, result.url, result.filename||fname);
-      }
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-yt-mp4'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      if(!urls.length) throw new Error('Please paste at least one YouTube URL');
-      for(let i=0;i<urls.length;i++){
-        const url=urls[i];
-        setProgress((i/urls.length)*90, `Fetching MP4 (${ytQuality==='max'?'best':ytQuality}) for ${url.slice(0,40)}…`);
-        const vid = extractYTId(url);
-        const result = await cobaltFetch(url,'auto',null,ytQuality);
-        const fname = (vid||'video')+'.mp4';
-        addLinkOutput(fname, result.url, result.filename||fname);
-      }
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-yt-wav'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      if(!urls.length) throw new Error('Please paste at least one YouTube URL');
-      for(let i=0;i<urls.length;i++){
-        const url=urls[i];
-        setProgress((i/urls.length)*90, `Fetching WAV for ${url.slice(0,40)}…`);
-        const vid = extractYTId(url);
-        const result = await cobaltFetch(url,'audio','wav');
-        const fname = (vid||'audio')+'.wav';
-        addLinkOutput(fname, result.url, result.filename||fname);
-      }
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-yt-opus'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      if(!urls.length) throw new Error('Please paste at least one YouTube URL');
-      for(let i=0;i<urls.length;i++){
-        const url=urls[i];
-        setProgress((i/urls.length)*90, `Fetching Opus for ${url.slice(0,40)}…`);
-        const vid = extractYTId(url);
-        const result = await cobaltFetch(url,'audio','opus');
-        const fname = (vid||'audio')+'.opus';
-        addLinkOutput(fname, result.url, result.filename||fname);
-      }
-      setProgress(100,'Done');
-    }
-
-    /* ─ LINKS — other ─ */
-    else if(id==='lk-url-qr'){
-      const url=ptxt.trim();
-      if(!url) throw new Error('Please paste a URL');
-      setProgress(20,'Generating QR code…');
-      const blob = await urlToQR(url);
-      const slug = url.replace(/https?:\/\/(www\.)?/,'').replace(/[^a-z0-9]/gi,'-').slice(0,40);
-      addOutput(`qr-${slug}.png`, blob);
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-yt-embed'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      for(const url of urls){
-        const vid=extractYTId(url);
-        if(!vid) throw new Error(`Could not parse YouTube ID from: ${url}`);
-        const embed=buildYTEmbed(vid);
-        addOutput(`yt-embed-${vid}.html`, new Blob([embed],{type:'text/html'}));
-        tick('Done');
-      }
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-yt-thumb'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      for(const url of urls){
-        const vid=extractYTId(url);
-        if(!vid) throw new Error(`Could not parse YouTube ID from: ${url}`);
-        setProgress(done/urls.length*80,`Fetching thumbnail for ${vid}…`);
-        const blob = await fetchYTThumb(vid);
-        addOutput(`thumb-${vid}.jpg`, blob);
-        tick('Done');
-      }
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-urls-html'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      if(!urls.length) throw new Error('Please paste at least one URL');
-      const html=buildBookmarkPage(urls);
-      addOutput('bookmarks.html', new Blob([html],{type:'text/html'}));
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-urls-csv'){
-      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
-      if(!urls.length) throw new Error('Please paste at least one URL');
-      const csv=urlsToCSV(urls);
-      addOutput('links.csv', new Blob([csv],{type:'text/csv'}));
-      setProgress(100,'Done');
-    }
-    else if(id==='lk-url-pdf'){
-      const url=ptxt.trim();
-      if(!url) throw new Error('Please paste a URL');
-      setProgress(30,'Building PDF…');
-      const {jsPDF}=window.jspdf;
-      const pdf=new jsPDF();
-      const parsed=parseURL(url);
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(16);
-      pdf.text('URL Reference',15,20);
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
-      pdf.setTextColor(130,130,130);
-      pdf.text('Generated by BladeForge',15,27);
-      pdf.setDrawColor(192,16,42); pdf.setLineWidth(.4);
-      pdf.line(15,31,195,31);
-      pdf.setTextColor(0,0,0); pdf.setFontSize(11);
-      const rows=[
-        ['Full URL',  url],
-        ['Protocol', parsed.protocol],
-        ['Hostname',  parsed.hostname],
-        ['Path',      parsed.pathname||'/'],
-        ['Query',     parsed.search||'—'],
-        ['Hash',      parsed.hash||'—'],
-        ['Generated', new Date().toLocaleString()],
-      ];
-      let y=42;
-      for(const[k,v] of rows){
-        pdf.setFont('helvetica','bold'); pdf.text(k+':',15,y);
-        pdf.setFont('helvetica','normal');
-        const lines=pdf.splitTextToSize(v,150); pdf.text(lines,55,y); y+=7*lines.length+3;
-      }
-      addOutput('url-reference.pdf', pdf.output('blob'));
-      setProgress(100,'Done');
-    }
-
-    if(outputs.length){
-      buildOutputActions();
-      showToast(`${outputs.length} file${outputs.length>1?'s':''} converted`,'ok');
-      outputPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
-    } else {
-      showToast('No output produced — check your input','err');
-    }
-
-  }catch(err){
-    console.error(err);
-    showToast('Error: '+(err.message||String(err)),'err');
-    setProgress(-1,'');
-  }
-
-  // Reset button state
-  busy=false;
-  btnConvert.classList.remove('loading');
-  convertIcon.innerHTML='<use href="#ico-dl"/>';
-  updateBtn();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   LINK HELPERS
-═══════════════════════════════════════════════════════════════ */
-
-/**
- * Call the cobalt.tools public API to get a download URL.
- * cobalt is open-source, free, no-ads: https://github.com/imputnet/cobalt
- */
-async function cobaltFetch(url, downloadMode='auto', audioFormat=null, videoQuality='max'){
-  const body = { url, downloadMode };
-  if(audioFormat)  body.audioFormat  = audioFormat;
-  if(videoQuality) body.videoQuality = videoQuality;
-
-  const res = await fetch('https://api.cobalt.tools/', {
-    method: 'POST',
-    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if(!res.ok){
-    const txt = await res.text().catch(()=>'');
-    throw new Error(`cobalt API error ${res.status}: ${txt.slice(0,120)}`);
-  }
-
-  const data = await res.json();
-
-  // cobalt returns: stream, tunnel, redirect, picker, or error
-  if(data.status === 'error'){
-    const code = data.error?.code || 'unknown';
-    // Give user-friendly messages for common errors
-    if(code.includes('content.too_long'))   throw new Error('Video is too long for free conversion.');
-    if(code.includes('link.unsupported'))   throw new Error('This URL is not supported by cobalt.');
-    if(code.includes('fetch.empty'))        throw new Error('Could not find media at this URL. Make sure it\'s public and not age-restricted.');
-    if(code.includes('rate_limit'))         throw new Error('Too many requests. Please wait a moment and try again.');
-    throw new Error(`cobalt: ${code}`);
-  }
-
-  if(data.status === 'picker'){
-    // Multiple streams (e.g. TikTok slideshow) — take first
-    if(data.picker && data.picker.length) return { url: data.picker[0].url, filename: data.filename };
-    throw new Error('Could not determine a single download stream from this URL.');
-  }
-
-  if(data.url) return { url: data.url, filename: data.filename || '' };
-  throw new Error('cobalt returned an unexpected response.');
-}
-
-/** Extract YouTube video ID from any YT URL format */
-function extractYTId(url){
-  const patterns=[
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-    /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
-  ];
-  for(const p of patterns){ const m=url.match(p); if(m) return m[1]; }
-  return null;
-}
-
-/** Parse URL safely */
 function parseURL(url){
-  try{ return new URL(url.startsWith('http')?url:'https://'+url); }
-  catch{ return {protocol:'?',hostname:url,pathname:'',search:'',hash:''}; }
+  try{ return new URL(url.startsWith('http')?url:`https://${url}`); }
+  catch{ return{protocol:'?',hostname:url,pathname:'',search:'',hash:''}; }
 }
 
-/** Generate QR code PNG blob using qrcodejs */
 function urlToQR(url){
   return new Promise((res,rej)=>{
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;left:-9999px;top:-9999px';
+    const wrap=document.createElement('div'); wrap.style.cssText='position:fixed;left:-9999px;top:-9999px';
     document.body.appendChild(wrap);
     try{
-      const qr=new QRCode(wrap,{
-        text:url, width:512, height:512,
-        colorDark:'#0c0d10', colorLight:'#EDE9E2',
-        correctLevel:QRCode.CorrectLevel.H
-      });
+      new QRCode(wrap,{text:url,width:512,height:512,colorDark:'#0c0d10',colorLight:'#EDE9E2',correctLevel:QRCode.CorrectLevel.H});
       setTimeout(()=>{
         const canvas=wrap.querySelector('canvas');
         if(!canvas){ document.body.removeChild(wrap); rej(new Error('QR canvas not found')); return; }
         canvas.toBlob(b=>{ document.body.removeChild(wrap); b?res(b):rej(new Error('QR blob failed')); },'image/png');
-      },120);
+      },150);
     }catch(e){ document.body.removeChild(wrap); rej(e); }
   });
 }
 
-/** Fetch YouTube thumbnail as blob via canvas (bypasses CORS for display) */
+// Fixed: removed crossOrigin to avoid tainted canvas, added fetch fallback
 async function fetchYTThumb(videoId){
-  // Try resolutions from best to fallback
-  const resolutions=['maxresdefault','sddefault','hqdefault','mqdefault','default'];
-  for(const res of resolutions){
-    const src=`https://img.youtube.com/vi/${videoId}/${res}.jpg`;
+  for(const r of['maxresdefault','sddefault','hqdefault','mqdefault','default']){
     try{
-      const blob=await fetchImageAsBlob(src);
-      if(blob) return blob;
+      return await new Promise((res,rej)=>{
+        const img=new Image();
+        img.onload=()=>{
+          try{
+            const c=document.createElement('canvas'); c.width=img.naturalWidth||1280; c.height=img.naturalHeight||720;
+            c.getContext('2d').drawImage(img,0,0);
+            c.toBlob(b=>{ (b&&b.size>2000)?res(b):rej(new Error('Blank')); },'image/jpeg',.92);
+          }catch{ rej(new Error('Canvas tainted')); }
+        };
+        img.onerror=()=>rej(new Error('Load failed'));
+        img.src=`https://img.youtube.com/vi/${videoId}/${r}.jpg?_=${Date.now()}`;
+      });
     }catch(_){}
   }
-  throw new Error('Could not fetch thumbnail — YouTube may block direct access. Try opening the URL in a new tab.');
+  // Fetch fallback (avoids canvas taint)
+  try{
+    const resp=await fetch(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
+    if(resp.ok) return await resp.blob();
+  }catch(_){}
+  throw new Error('Could not fetch thumbnail — try opening the YouTube page directly.');
 }
 
-/** Load image via canvas to get blob (works for cross-origin images with CORS headers) */
-function fetchImageAsBlob(src){
-  return new Promise((res,rej)=>{
-    const img=new Image();
-    img.crossOrigin='anonymous';
-    img.onload=()=>{
-      const c=document.createElement('canvas');
-      c.width=img.naturalWidth||1280; c.height=img.naturalHeight||720;
-      c.getContext('2d').drawImage(img,0,0);
-      c.toBlob(b=>{ if(b&&b.size>2000) res(b); else rej(new Error('Blank image')); },'image/jpeg',.92);
-    };
-    img.onerror=()=>rej(new Error('Image load failed'));
-    img.src=src;
-  });
-}
-
-/** Build YouTube embed HTML page */
 function buildYTEmbed(videoId){
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>YouTube Embed — ${videoId}</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#07080a;color:#ede9e2;font-family:Georgia,serif;
-     display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:40px 20px}
-h1{font-size:1rem;letter-spacing:.18em;text-transform:uppercase;
-   color:rgba(237,233,226,.45);margin-bottom:24px;font-family:Georgia,serif;font-weight:400}
-.player{width:100%;max-width:800px;aspect-ratio:16/9;border:1px solid rgba(255,255,255,.07)}
-.player iframe{width:100%;height:100%;border:none;display:block}
-.code-block{width:100%;max-width:800px;margin-top:24px;
-            background:#111318;border:1px solid rgba(255,255,255,.08);padding:16px}
-.code-label{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
-            color:#c0102a;margin-bottom:8px;font-family:Georgia,serif}
-pre{font-family:'Courier New',monospace;font-size:.78rem;line-height:1.6;
-    color:rgba(237,233,226,.7);white-space:pre-wrap;word-break:break-all}
-</style>
-</head>
-<body>
-<h1>Embedded Player</h1>
-<div class="player">
-  <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1"
-          title="YouTube video player"
-          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
-          allowfullscreen></iframe>
-</div>
-<div class="code-block">
-  <p class="code-label">Embed Code</p>
-  <pre>&lt;iframe width="560" height="315"
-  src="https://www.youtube.com/embed/${videoId}?rel=0&amp;modestbranding=1"
-  title="YouTube video player"
-  frameborder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen&gt;&lt;/iframe&gt;</pre>
-</div>
-</body>
-</html>`;
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Embed — ${videoId}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#07080a;color:#ede9e2;font-family:Georgia,serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:40px 20px}h1{font-size:1rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(237,233,226,.45);margin-bottom:24px;font-weight:400}.player{width:100%;max-width:800px;aspect-ratio:16/9;border:1px solid rgba(255,255,255,.07)}.player iframe{width:100%;height:100%;border:none;display:block}.code-block{width:100%;max-width:800px;margin-top:24px;background:#111318;border:1px solid rgba(255,255,255,.08);padding:16px}.code-label{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:#c0102a;margin-bottom:8px}pre{font-family:'Courier New',monospace;font-size:.78rem;line-height:1.6;color:rgba(237,233,226,.7);white-space:pre-wrap;word-break:break-all}</style></head><body><h1>Embedded Player</h1><div class="player"><iframe src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe></div><div class="code-block"><p class="code-label">Embed Code</p><pre>&lt;iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen&gt;&lt;/iframe&gt;</pre></div></body></html>`;
 }
 
-/** Build bookmark HTML page from URL list */
 function buildBookmarkPage(urls){
-  const cards=urls.map(url=>{
-    const p=parseURL(url);
-    const domain=p.hostname||url;
-    const favicon=`https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-    return `<a class="card" href="${url}" target="_blank" rel="noopener">
-  <img class="fav" src="${favicon}" alt="" width="16" height="16" onerror="this.style.display='none'"/>
-  <div class="card-info">
-    <span class="card-domain">${domain}</span>
-    <span class="card-url">${url}</span>
-  </div>
-  <svg class="card-arrow" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">
-    <path d="M2 10 10 2M4 2h6v6" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</a>`;
-  }).join('\n');
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Bookmarks — ${urls.length} Links</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#07080a;color:#ede9e2;font-family:Georgia,serif;
-     max-width:720px;margin:0 auto;padding:48px 20px}
-h1{font-family:Georgia,serif;font-weight:400;font-size:1.5rem;
-   letter-spacing:.1em;margin-bottom:6px}
-.meta{font-style:italic;color:rgba(237,233,226,.4);font-size:.9rem;margin-bottom:32px}
-.meta span{color:#c0102a}
-.cards{display:flex;flex-direction:column;gap:6px}
-.card{display:flex;align-items:center;gap:14px;
-      background:#111318;border:1px solid rgba(255,255,255,.07);
-      padding:14px 16px;text-decoration:none;color:inherit;
-      transition:border-color .2s,background .2s;position:relative}
-.card:hover{border-color:rgba(192,16,42,.4);background:#161820}
-.card::before{content:'';position:absolute;left:0;top:0;bottom:0;
-              width:2px;background:transparent;transition:background .2s}
-.card:hover::before{background:#c0102a}
-.fav{flex-shrink:0;opacity:.7}
-.card-info{flex:1;min-width:0}
-.card-domain{display:block;font-size:.78rem;letter-spacing:.06em;
-             color:rgba(237,233,226,.9);margin-bottom:2px}
-.card-url{display:block;font-style:italic;font-size:.78rem;
-          color:rgba(237,233,226,.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-arrow{width:12px;height:12px;flex-shrink:0;color:rgba(237,233,226,.3)}
-.card:hover .card-arrow{color:#c0102a}
-</style>
-</head>
-<body>
-<h1>Bookmarks</h1>
-<p class="meta"><span>${urls.length}</span> link${urls.length!==1?'s':''} — exported by BladeForge</p>
-<div class="cards">
-${cards}
-</div>
-</body>
-</html>`;
+  const cards=urls.map(url=>{ const p=parseURL(url),domain=p.hostname||url; return `<a class="card" href="${url}" target="_blank" rel="noopener"><img class="fav" src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" alt="" width="16" height="16" onerror="this.style.display='none'"/><div class="card-info"><span class="card-domain">${domain}</span><span class="card-url">${url}</span></div><svg class="card-arrow" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 10 10 2M4 2h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`; }).join('\n');
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Bookmarks</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#07080a;color:#ede9e2;font-family:Georgia,serif;max-width:720px;margin:0 auto;padding:48px 20px}h1{font-weight:400;font-size:1.5rem;letter-spacing:.1em;margin-bottom:6px}.meta{font-style:italic;color:rgba(237,233,226,.4);font-size:.9rem;margin-bottom:32px}.meta span{color:#c0102a}.cards{display:flex;flex-direction:column;gap:6px}.card{display:flex;align-items:center;gap:14px;background:#111318;border:1px solid rgba(255,255,255,.07);padding:14px 16px;text-decoration:none;color:inherit;transition:border-color .2s,background .2s;position:relative}.card:hover{border-color:rgba(192,16,42,.4);background:#161820}.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background .2s}.card:hover::before{background:#c0102a}.fav{flex-shrink:0;opacity:.7}.card-info{flex:1;min-width:0}.card-domain{display:block;font-size:.78rem;color:rgba(237,233,226,.9);margin-bottom:2px}.card-url{display:block;font-style:italic;font-size:.78rem;color:rgba(237,233,226,.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.card-arrow{width:12px;height:12px;flex-shrink:0;color:rgba(237,233,226,.3)}.card:hover .card-arrow{color:#c0102a}</style></head><body><h1>Bookmarks</h1><p class="meta"><span>${urls.length}</span> link${urls.length!==1?'s':''} — BladeForge</p><div class="cards">${cards}</div></body></html>`;
 }
 
-/** Convert URL list to CSV with parsed columns */
 function urlsToCSV(urls){
-  const rows=urls.map(url=>{
-    const p=parseURL(url);
-    return [
-      `"${url}"`,
-      `"${p.protocol.replace(':','')}"`,
-      `"${p.hostname}"`,
-      `"${p.pathname||'/'}"`,
-      `"${p.search||''}"`,
-      `"${p.hash||''}"`,
-    ].join(',');
-  });
-  return['URL,Protocol,Hostname,Path,Query,Hash',...rows].join('\n');
+  return['URL,Protocol,Hostname,Path,Query,Hash',...urls.map(url=>{ const p=parseURL(url); return[`"${url}"`,`"${p.protocol.replace(':','')}"`,`"${p.hostname}"`,`"${p.pathname||'/'}"`,`"${p.search||''}"`,`"${p.hash||''}"`].join(','); })].join('\n');
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════════════════ */
+// ─── RUN ──────────────────────────────────────────────────────────────────────
+btnConvert.addEventListener('click',run);
+
+async function run(){
+  if(busy) return;
+
+  // ytdl tabs: just update the dl panel and scroll to it
+  if(conv.ytdl){
+    const url=pasteEl.value.trim().split('\n')[0];
+    dlCopyInput.value=url;
+    buildDlSites();
+    showDlPanel(url);
+    dlPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
+    showToast('Copy your URL and open a site below','ok');
+    return;
+  }
+
+  busy=true; outputList.innerHTML=''; outputActions.innerHTML=''; outputPanel.style.display='none';
+  outputs=[]; updateBtn(); btnConvert.classList.add('loading'); btnConvText.textContent='Processing…';
+  convIconEl.innerHTML='<use href="#ico-spinner"/>';
+
+  try{
+    const id=conv.id,fls=files,ptxt=pasteEl.value,total=fls.length||1;
+    let done=0;
+    const tick=label=>{ done++; setProgress((done/total)*100,label); };
+    setProgress(0,'Starting…');
+
+    // IMAGE
+    if(['i-png-jpg','i-any-jpg'].includes(id)){
+      for(const f of fls){ setProgress((done/total)*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.jpg'),await canvasConvert(f,'image/jpeg',.92)); tick('Done'); }
+    } else if(['i-jpg-png','i-any-png'].includes(id)){
+      for(const f of fls){ setProgress((done/total)*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.png'),await canvasConvert(f,'image/png')); tick('Done'); }
+    } else if(id==='i-any-webp'){
+      for(const f of fls){ setProgress((done/total)*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.webp'),await canvasConvert(f,'image/webp',.9)); tick('Done'); }
+    } else if(id==='i-any-bmp'){
+      for(const f of fls){ setProgress((done/total)*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.bmp'),await canvasConvert(f,'image/bmp')); tick('Done'); }
+    } else if(id==='i-svg-png'){
+      for(const f of fls){ setProgress((done/total)*100,`Converting ${f.name}…`); addOutput(f.name.replace(/\.[^.]+$/,'.png'),await svgToPng(f)); tick('Done'); }
+    } else if(id==='i-multi-pdf'){
+      setProgress(20,'Building PDF…'); addOutput('images-compiled.pdf',await imgsToPdf(fls.map(f=>new Blob([f],{type:f.type})))); setProgress(100,'Done');
+    } else if(id==='i-resize'){
+      const newW=parseInt(resizeInput.value,10);
+      if(!newW||newW<1) throw new Error('Please enter a valid width in the resize field above.');
+      for(const f of fls){
+        setProgress((done/total)*100,`Resizing ${f.name}…`);
+        const url=URL.createObjectURL(f); const img=await loadImg(url); URL.revokeObjectURL(url);
+        const sc=newW/img.naturalWidth; const c=document.createElement('canvas');
+        c.width=newW; c.height=Math.round(img.naturalHeight*sc);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        addOutput('resized-'+f.name,await new Promise(r=>c.toBlob(r,f.type||'image/png'))); tick('Done');
+      }
+    }
+
+    // DOCUMENT
+    else if(['d-md-html','d-paste-md-html'].includes(id)){
+      const inputs=id.startsWith('d-paste')?[{name:'output.html',c:ptxt}]:await Promise.all(fls.map(async f=>({name:f.name,c:await readTxt(f)})));
+      for(const{name,c} of inputs){ const body=typeof marked!=='undefined'?marked.parse(c):`<pre>${c}</pre>`; addOutput(name.replace(/\.[^.]+$/,'.html'),new Blob([`<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:Georgia,serif;max-width:820px;margin:48px auto;line-height:1.75;padding:0 24px;color:#1a1a1a}h1,h2,h3{margin:1.5em 0 .5em}code{background:#f4f4f4;padding:1px 5px}pre{background:#f4f4f4;padding:16px;overflow:auto}</style></head><body>${body}</body></html>`],{type:'text/html'})); tick('Done'); }
+    } else if(id==='d-html-txt'){
+      for(const f of fls){ const t=await readTxt(f); const d=document.createElement('div'); d.innerHTML=t; addOutput(f.name.replace(/\.[^.]+$/,'.txt'),new Blob([d.innerText||d.textContent],{type:'text/plain'})); tick('Done'); }
+    } else if(['d-txt-pdf','d-md-pdf','d-paste-txt-pdf'].includes(id)){
+      const{jsPDF}=window.jspdf;
+      const inputs=id.startsWith('d-paste')?[{name:'output',c:ptxt}]:await Promise.all(fls.map(async f=>({name:f.name.replace(/\.[^.]+$/,''),c:await readTxt(f)})));
+      for(const{name,c} of inputs){ const pdf=new jsPDF(); const lines=pdf.splitTextToSize(c,180); let y=15; for(const l of lines){ if(y>280){pdf.addPage();y=15;} pdf.text(l,15,y);y+=7; } addOutput(name+'.pdf',pdf.output('blob')); tick('Done'); }
+    }
+
+    // DATA
+    else if(['dt-json-csv','dt-paste-json-csv'].includes(id)){
+      const inputs=id.startsWith('dt-paste')?[{name:'output.csv',c:ptxt}]:await Promise.all(fls.map(async f=>({name:f.name,c:await readTxt(f)})));
+      for(const{name,c} of inputs){ let arr; try{arr=JSON.parse(c);}catch{throw new Error(`Invalid JSON in ${name}`);} addOutput(name.replace(/\.[^.]+$/,'.csv'),new Blob([arr2csv(Array.isArray(arr)?arr:[arr])],{type:'text/csv'})); tick('Done'); }
+    } else if(['dt-csv-json','dt-paste-csv-json'].includes(id)){
+      const inputs=id.startsWith('dt-paste')?[{name:'output.json',c:ptxt}]:await Promise.all(fls.map(async f=>({name:f.name,c:await readTxt(f)})));
+      for(const{name,c} of inputs){ addOutput(name.replace(/\.[^.]+$/,'.json'),new Blob([JSON.stringify(csv2arr(c),null,2)],{type:'application/json'})); tick('Done'); }
+    } else if(id==='dt-json-yaml'){
+      for(const f of fls){ const t=await readTxt(f); let obj; try{obj=JSON.parse(t);}catch{throw new Error(`Invalid JSON in ${f.name}`);} addOutput(f.name.replace(/\.[^.]+$/,'.yaml'),new Blob([obj2yaml(obj)],{type:'text/yaml'})); tick('Done'); }
+    } else if(id==='dt-yaml-json'){
+      for(const f of fls){ const t=await readTxt(f); addOutput(f.name.replace(/\.[^.]+$/,'.json'),new Blob([JSON.stringify(yaml2obj(t),null,2)],{type:'application/json'})); tick('Done'); }
+    }
+
+    // SPREADSHEET
+    else if(id==='ss-csv-xlsx'){
+      for(const f of fls){ const t=await readTxt(f); const wb=XLSX.read(t,{type:'string'}); addOutput(f.name.replace(/\.[^.]+$/,'.xlsx'),new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); tick('Done'); }
+    } else if(id==='ss-xlsx-csv'){
+      for(const f of fls){ const ab=await readAB(f); const wb=XLSX.read(ab,{type:'array'}); addOutput(f.name.replace(/\.[^.]+$/,'.csv'),new Blob([XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]])],{type:'text/csv'})); tick('Done'); }
+    } else if(id==='ss-xlsx-json'){
+      for(const f of fls){ const ab=await readAB(f); const wb=XLSX.read(ab,{type:'array'}); addOutput(f.name.replace(/\.[^.]+$/,'.json'),new Blob([JSON.stringify(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]),null,2)],{type:'application/json'})); tick('Done'); }
+    } else if(id==='ss-json-xlsx'){
+      for(const f of fls){ let arr; try{arr=JSON.parse(await readTxt(f));}catch{throw new Error(`Invalid JSON in ${f.name}`);} const ws=XLSX.utils.json_to_sheet(Array.isArray(arr)?arr:[arr]); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Sheet1'); addOutput(f.name.replace(/\.[^.]+$/,'.xlsx'),new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); tick('Done'); }
+    } else if(id==='ss-csv-html'){
+      for(const f of fls){
+        const arr=csv2arr(await readTxt(f)); if(!arr.length){tick('Done');continue;}
+        const hs=Object.keys(arr[0]); const th=hs.map(h=>`<th>${h}</th>`).join('');
+        const tr=arr.map(r=>`<tr>${hs.map(k=>`<td>${r[k]??''}</td>`).join('')}</tr>`).join('');
+        addOutput(f.name.replace(/\.[^.]+$/,'.html'),new Blob([`<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{font-family:Georgia,serif;padding:24px;background:#0c0d10;color:#ede9e2}table{width:100%;border-collapse:collapse}th,td{padding:9px 14px;border:1px solid rgba(255,255,255,.08);text-align:left;font-size:.9rem}th{background:rgba(192,16,42,.12);color:#ede9e2;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}tr:hover{background:rgba(255,255,255,.03)}</style></head><body><table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`],{type:'text/html'})); tick('Done');
+      }
+    }
+
+    // URL TOOLS
+    else if(id==='lk-url-qr'){
+      const url=ptxt.trim(); if(!url) throw new Error('Please paste a URL');
+      setProgress(20,'Generating QR code…');
+      addOutput(`qr-${url.replace(/https?:\/\/(www\.)?/,'').replace(/[^a-z0-9]/gi,'-').slice(0,40)}.png`,await urlToQR(url)); setProgress(100,'Done');
+    } else if(id==='lk-yt-embed'){
+      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
+      for(const url of urls){ const vid=extractYTId(url); if(!vid) throw new Error(`Cannot parse YouTube ID from: ${url}`); addOutput(`yt-embed-${vid}.html`,new Blob([buildYTEmbed(vid)],{type:'text/html'})); tick('Done'); }
+      setProgress(100,'Done');
+    } else if(id==='lk-yt-thumb'){
+      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean);
+      for(const url of urls){ const vid=extractYTId(url); if(!vid) throw new Error(`Cannot parse YouTube ID from: ${url}`); setProgress((done/urls.length)*80,`Fetching thumbnail for ${vid}…`); addOutput(`thumb-${vid}.jpg`,await fetchYTThumb(vid)); tick('Done'); }
+      setProgress(100,'Done');
+    } else if(id==='lk-urls-html'){
+      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean); if(!urls.length) throw new Error('Please paste at least one URL');
+      addOutput('bookmarks.html',new Blob([buildBookmarkPage(urls)],{type:'text/html'})); setProgress(100,'Done');
+    } else if(id==='lk-urls-csv'){
+      const urls=ptxt.split('\n').map(l=>l.trim()).filter(Boolean); if(!urls.length) throw new Error('Please paste at least one URL');
+      addOutput('links.csv',new Blob([urlsToCSV(urls)],{type:'text/csv'})); setProgress(100,'Done');
+    } else if(id==='lk-url-pdf'){
+      const url=ptxt.trim(); if(!url) throw new Error('Please paste a URL');
+      setProgress(30,'Building PDF…');
+      const{jsPDF}=window.jspdf; const pdf=new jsPDF(); const p=parseURL(url);
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(16); pdf.text('URL Reference',15,20);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(10); pdf.setTextColor(130,130,130); pdf.text('Generated by BladeForge',15,27);
+      pdf.setDrawColor(192,16,42); pdf.setLineWidth(.4); pdf.line(15,31,195,31); pdf.setTextColor(0,0,0); pdf.setFontSize(11);
+      let y=42;
+      for(const[k,v] of[['Full URL',url],['Protocol',p.protocol],['Hostname',p.hostname],['Path',p.pathname||'/'],['Query',p.search||'—'],['Hash',p.hash||'—'],['Generated',new Date().toLocaleString()]]){
+        pdf.setFont('helvetica','bold'); pdf.text(k+':',15,y); pdf.setFont('helvetica','normal');
+        const lines=pdf.splitTextToSize(v,150); pdf.text(lines,55,y); y+=7*lines.length+3;
+      }
+      addOutput('url-reference.pdf',pdf.output('blob')); setProgress(100,'Done');
+    }
+
+    if(outputs.length){ buildOutputActions(); showToast(`${outputs.length} file${outputs.length>1?'s':''} ready`,'ok'); outputPanel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+    else showToast('No output produced — check your input','err');
+
+  }catch(err){
+    console.error(err); showToast('Error: '+(err.message||String(err)),'err'); setProgress(-1,'');
+  }
+
+  busy=false; btnConvert.classList.remove('loading'); convIconEl.innerHTML='<use href="#ico-dl"/>'; updateBtn();
+}
+
 buildSelect();
 </script>
 </body>
