@@ -426,11 +426,13 @@ const DL_SITES = [
     buildUrl: () => 'https://soundcloudmp3.org' },
   { name:'Twitter Video Down', supports:'Twitter / X',
     buildUrl: u => `https://twittervideodownloader.com/?url=${encodeURIComponent(u)}` },
+  { name:'Spotdown',           supports:'Spotify — tracks, albums, playlists',
+    buildUrl: u => `https://spotdown.org/${u?'?url='+encodeURIComponent(u):''}` },
 ];
 
 // Platform info shown per format
 const FORMAT_INFO = {
-  'lk-yt-mp3':  'YouTube · SoundCloud · Spotify · TikTok · Instagram · Vimeo',
+  'lk-yt-mp3':  'YouTube · SoundCloud · Spotify (via Spotdown) · TikTok · Instagram · Vimeo',
   'lk-yt-mp4':  'YouTube · TikTok · Instagram · Twitter/X · Facebook · Vimeo',
   'lk-yt-wav':  'YouTube · SoundCloud · Vimeo',
   'lk-yt-opus': 'YouTube · SoundCloud · Vimeo',
